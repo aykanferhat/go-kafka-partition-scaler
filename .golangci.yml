@@ -1,47 +1,51 @@
-linters-settings:
-  lll:
-    line-length: 180
-  funlen:
-    lines: 100
+run:
+  skip-dirs:
+    - examples
 
-linters:
-  disable-all: true
-  enable:
-    - bodyclose
-    - errcheck
-    - dupl
-    - exhaustive
-    - goconst
-    - gocritic
-    - gocyclo
-    - revive
-    - gosimple
-    - govet
-    - gosec
-    - ineffassign
-    - misspell
-    - nakedret
-    - gofumpt
-    - nolintlint
-    - staticcheck
-    - stylecheck
-    - typecheck
-    - unconvert
-    - unparam
-    - unused
-    - whitespace
+  linters-settings:
+    lll:
+      line-length: 180
+    funlen:
+      lines: 100
 
-issues:
-  exclude-rules:
-    - linters:
-        - stylecheck
-      text: "ST1001:"
-    - linters:
-        - gosec
-      text: "G402:"
+  linters:
+    disable-all: true
+    enable:
+      - bodyclose
+      - errcheck
+      - dupl
+      - exhaustive
+      - goconst
+      - gocritic
+      - gocyclo
+      - revive
+      - gosimple
+      - govet
+      - gosec
+      - ineffassign
+      - misspell
+      - nakedret
+      - gofumpt
+      - nolintlint
+      - staticcheck
+      - stylecheck
+      - typecheck
+      - unconvert
+      - unparam
+      - unused
+      - whitespace
+
+  issues:
+    exclude-rules:
+      - linters:
+          - stylecheck
+        text: "ST1001:"
+      - linters:
+          - gosec
+        text: "G402:"
 
 
-service:
-  golangci-lint-version: 1.51.x
-  prepare:
-    - echo "here I can run custom commands, but no preparation needed for this repo"
+  service:
+    golangci-lint-version: 1.51.x
+    prepare:
+      - echo "here I can run custom commands, but no preparation needed for this repo"

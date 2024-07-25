@@ -2,9 +2,9 @@ package main
 
 import (
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
-	"github.com/Trendyol/go-kafka-partition-scaler/examples/core_single_message_consumer/consumers"
-	"github.com/Trendyol/go-kafka-partition-scaler/examples/core_single_message_consumer/consumers/interceptors"
-	"github.com/Trendyol/go-kafka-partition-scaler/examples/core_single_message_consumer/log"
+	"github.com/Trendyol/go-kafka-partition-scaler/examples/core_sarama_message_consumer/consumers"
+	"github.com/Trendyol/go-kafka-partition-scaler/examples/core_sarama_message_consumer/consumers/interceptors"
+	"github.com/Trendyol/go-kafka-partition-scaler/examples/core_sarama_message_consumer/log"
 )
 
 const (

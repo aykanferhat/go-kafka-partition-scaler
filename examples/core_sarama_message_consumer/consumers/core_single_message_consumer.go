@@ -12,6 +12,6 @@ func NewCoreSingleMessageConsumer() partitionscaler.Consumer {
 	return &coreSingleMessageConsumer{}
 }
 
-func (consumer *coreSingleMessageConsumer) Consume(_ context.Context, _ *partitionscaler.ConsumerMessage) error {
+func (consumer *coreSingleMessageConsumer) Consume(context.Context, *partitionscaler.ConsumerMessage) error {
 	return nil
 }
