@@ -28,11 +28,11 @@ type errorConsumerGroup struct {
 	errorTopicConsumerMap       map[string]Consumer
 	lastStep                    func(context.Context, *ConsumerMessage, error)
 	scheduleToSubscribeCron     *cron.Cron
-	subscribed                  bool
-	running                     bool
 	consumerGroupStatusTicker   *time.Ticker
 	consumerGroupStatusListener *ConsumerGroupStatusListener
 	tracers                     []Tracer
+	subscribed                  bool
+	running                     bool
 }
 
 func NewErrorConsumerGroup(

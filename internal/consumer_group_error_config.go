@@ -8,21 +8,21 @@ import (
 )
 
 type ConsumerGroupErrorConfig struct {
+	FetchMaxBytes                     string        `json:"fetchMaxBytes"`
 	GroupID                           string        `json:"groupId"`
-	Topics                            []string      `json:"topics"`
 	TargetTopic                       string        `json:"targetTopic"`
 	Cron                              string        `json:"cron"`
-	MaxErrorCount                     int           `json:"maxErrorCount"`
-	CloseConsumerWhenThereIsNoMessage time.Duration `json:"closeConsumerWhenThereIsNoMessage"`
-	CloseConsumerWhenMessageIsNew     time.Duration `json:"closeConsumerWhenMessageIsNew"`
 	Cluster                           string        `json:"cluster"`
-	MaxProcessingTime                 time.Duration `json:"maxProcessingTime"`
-	FetchMaxBytes                     string        `json:"fetchMaxBytes"`
+	Tracer                            string        `json:"tracer"`
 	OffsetInitial                     OffsetInitial `json:"offsetInitial"`
+	Topics                            []string      `json:"topics"`
+	MaxErrorCount                     int           `json:"maxErrorCount"`
+	CloseConsumerWhenMessageIsNew     time.Duration `json:"closeConsumerWhenMessageIsNew"`
+	MaxProcessingTime                 time.Duration `json:"maxProcessingTime"`
 	SessionTimeout                    time.Duration `json:"sessionTimeout"`
 	RebalanceTimeout                  time.Duration `json:"rebalanceTimeout"`
 	HeartbeatInterval                 time.Duration `json:"heartbeatInterval"`
-	Tracer                            string        `json:"tracer"`
+	CloseConsumerWhenThereIsNoMessage time.Duration `json:"closeConsumerWhenThereIsNoMessage"`
 }
 
 type ConsumerGroupErrorConfigMap map[string]*ConsumerGroupErrorConfig

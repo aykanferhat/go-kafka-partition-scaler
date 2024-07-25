@@ -10,7 +10,7 @@ type ConsumerGroupConsumers struct {
 }
 
 type ConsumerGroupErrorConsumers struct {
-	ConfigName               string
 	ErrorConsumer            Consumer
 	ConsumerErrorInterceptor ConsumerErrorInterceptor
+	ConfigName               string
 }

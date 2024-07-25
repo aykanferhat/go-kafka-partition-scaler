@@ -20,7 +20,7 @@ type Auth struct {
 
 type ProducerConfig struct {
 	RequiredAcks    RequiredAcks
-	Timeout         time.Duration
 	MaxMessageBytes string
 	Compression     Compression
+	Timeout         time.Duration
 }

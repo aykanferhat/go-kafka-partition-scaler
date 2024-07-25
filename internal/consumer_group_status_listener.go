@@ -18,11 +18,11 @@ const (
 )
 
 type ConsumerGroupStatus struct {
-	Topic     string
-	Partition int32
-	Offset    int64
-	Status    Status
 	Time      time.Time
+	Topic     string
+	Status    Status
+	Offset    int64
+	Partition int32
 }
 
 func (t ConsumerGroupStatus) GetKey() string {

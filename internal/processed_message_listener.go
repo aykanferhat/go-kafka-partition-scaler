@@ -18,19 +18,19 @@ type ProcessedMessageListener interface {
 }
 
 type processedMessageListener struct {
-	topic                         string
-	partition                     int32
+	commitMessageFunc             kafka.CommitMessageFunc
 	messageChan                   chan *processedMessage
-	messageChanClosed             bool
 	firstConsumedMessage          *firstConsumedMessage
-	firstConsumedMessageProcessed bool
 	lastCommittedMessage          *lastCommittedMessage
 	processMessageMutex           *sync.Mutex
 	processMessageTicker          *time.Ticker
-	commitMessageFunc             kafka.CommitMessageFunc
 	waitGroup                     *sync.WaitGroup
 	closeOnce                     *sync.Once
+	topic                         string
 	messages                      []*processedMessage
+	partition                     int32
+	messageChanClosed             bool
+	firstConsumedMessageProcessed bool
 }
 
 type firstConsumedMessage struct {
@@ -40,8 +40,8 @@ type firstConsumedMessage struct {
 }
 
 type lastCommittedMessage struct {
-	offset int64
 	date   time.Time
+	offset int64
 }
 
 func (listener *processedMessageListener) SetFirstConsumedMessage(topic string, partition int32, offset int64) {

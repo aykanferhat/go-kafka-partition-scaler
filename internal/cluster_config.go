@@ -35,12 +35,12 @@ type ErrorConfig struct {
 	GroupID                           string        `json:"groupId"`
 	Cron                              string        `json:"cron"`
 	Tracer                            string        `json:"tracer"`
+	FetchMaxBytes                     string        `json:"fetchMaxBytes"`
+	OffsetInitial                     OffsetInitial `json:"offsetInitial"`
 	MaxErrorCount                     int           `json:"maxErrorCount"`
 	MaxProcessingTime                 time.Duration `json:"maxProcessingTime"`
 	CloseConsumerWhenThereIsNoMessage time.Duration `json:"closeConsumerWhenThereIsNoMessage"`
 	CloseConsumerWhenMessageIsNew     time.Duration `json:"closeConsumerWhenMessageIsNew"`
-	FetchMaxBytes                     string        `json:"fetchMaxBytes"`
-	OffsetInitial                     OffsetInitial `json:"offsetInitial"`
 	SessionTimeout                    time.Duration `json:"sessionTimeout"`
 	RebalanceTimeout                  time.Duration `json:"rebalanceTimeout"`
 	HeartbeatInterval                 time.Duration `json:"heartbeatInterval"`
@@ -54,9 +54,9 @@ type (
 
 type ProducerConfig struct {
 	RequiredAcks    RequiredAcks  `json:"requiredAcks"`
-	Timeout         time.Duration `json:"timeout"`
 	MaxMessageBytes string        `json:"maxMessageBytes"`
 	Compression     Compression   `json:"compression"`
+	Timeout         time.Duration `json:"timeout"`
 }
 
 type ClusterConfigMap map[string]*ClusterConfig

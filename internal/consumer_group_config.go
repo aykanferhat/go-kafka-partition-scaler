@@ -17,7 +17,7 @@ type ConsumerGroupConfig struct {
 	Tracer                      string        `json:"tracer"`
 	Cluster                     string        `json:"cluster"`
 	Name                        string        `json:"name"`
-	VirtualPartitionCount       int           `json:"virtualPartitionCount"`
+	FetchMaxBytes               string        `json:"fetchMaxBytes"`
 	RetryCount                  int           `json:"retryCount"`
 	VirtualPartitionChanCount   int           `json:"virtualPartitionChanCount"`
 	ConsumeBatchListenerLatency time.Duration `json:"consumeBatchListenerLatency"`
@@ -26,7 +26,7 @@ type ConsumerGroupConfig struct {
 	HeartbeatInterval           time.Duration `json:"heartbeatInterval"`
 	BatchSize                   int           `json:"batchSize"`
 	SessionTimeout              time.Duration `json:"sessionTimeout"`
-	FetchMaxBytes               string        `json:"fetchMaxBytes"`
+	VirtualPartitionCount       int           `json:"virtualPartitionCount"`
 	DisableErrorConsumer        bool          `json:"disableErrorConsumer"`
 	UniqueListener              bool          `json:"uniqueListener"`
 }

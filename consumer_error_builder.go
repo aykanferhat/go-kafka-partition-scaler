@@ -7,12 +7,12 @@ import (
 )
 
 type ConsumerErrorBuilder struct {
+	consumerErrorInterceptor ConsumerErrorInterceptor
 	clusterConfigMap         ClusterConfigMap
 	consumerConfigMap        ConsumerGroupErrorConfigMap
+	lastStepFunc             func(context.Context, *ConsumerMessage, error)
 	consumersList            []*ConsumerGroupErrorConsumers
 	tracers                  []Tracer
-	consumerErrorInterceptor ConsumerErrorInterceptor
-	lastStepFunc             func(context.Context, *ConsumerMessage, error)
 }
 
 func NewErrorConsumerBuilder(

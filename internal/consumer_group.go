@@ -24,11 +24,10 @@ type ConsumerGroup interface {
 }
 
 type consumerGroup struct {
-	cg                        kafka.ConsumerGroup
-	processedMessageListeners *csmap.ConcurrentSwissMap[string, ProcessedMessageListener]
-	initializedContext        ConsumerGroupInitializeContext
-
+	cg                          kafka.ConsumerGroup
+	processedMessageListeners   *csmap.ConcurrentSwissMap[string, ProcessedMessageListener]
 	consumerGroupStatusListener *ConsumerGroupStatusListener
+	initializedContext          ConsumerGroupInitializeContext
 }
 
 type ConsumerGroupInitializeContext struct {
