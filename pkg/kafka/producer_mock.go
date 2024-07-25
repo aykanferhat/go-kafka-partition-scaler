@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
 	message "github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/message"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockProducer is a mock of Producer interface.

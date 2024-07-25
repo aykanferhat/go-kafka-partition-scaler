@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 	"github.com/Trendyol/go-kafka-partition-scaler/examples/producer/interceptors"
 	"github.com/Trendyol/go-kafka-partition-scaler/examples/producer/log"

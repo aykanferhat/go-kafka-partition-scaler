@@ -3,10 +3,11 @@ package integration
 import (
 	"context"
 	"crypto/rand"
-	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 	"math/big"
 	"testing"
 	"time"
+
+	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 
 	"github.com/Trendyol/go-kafka-partition-scaler/pkg/uuid"
 	"github.com/Trendyol/go-kafka-partition-scaler/test/testdata"

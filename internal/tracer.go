@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+
 	"github.com/Trendyol/go-kafka-partition-scaler/common"
 )
 

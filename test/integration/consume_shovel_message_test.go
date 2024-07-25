@@ -2,10 +2,11 @@ package integration
 
 import (
 	"context"
-	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 	"sync"
 	"testing"
 	"time"
+
+	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 
 	"github.com/Trendyol/go-kafka-partition-scaler/pkg/json"
 	"github.com/Trendyol/go-kafka-partition-scaler/test/testdata"

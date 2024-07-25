@@ -3,9 +3,10 @@ package integration
 import (
 	"context"
 	"errors"
-	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 	"strings"
 	"testing"
+
+	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 
 	"github.com/IBM/sarama"
 

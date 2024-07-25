@@ -67,11 +67,6 @@ func (c *ConsumerGroupConfig) IsDisabledErrorConsumer() bool {
 
 type ConsumerGroupConfigMap map[string]*ConsumerGroupConfig
 
-const (
-	kib = 1024
-	mib = 1024 * kib
-)
-
 func (c ConsumerGroupConfigMap) GetConfigWithDefault(name string) (*ConsumerGroupConfig, error) {
 	if cc, exists := c[strings.ToLower(name)]; exists {
 		if len(cc.GroupID) == 0 {

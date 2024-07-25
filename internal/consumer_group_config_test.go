@@ -1,9 +1,10 @@
 package internal
 
 import (
-	"github.com/Trendyol/go-kafka-partition-scaler/common"
 	"testing"
 	"time"
+
+	"github.com/Trendyol/go-kafka-partition-scaler/common"
 
 	"github.com/stretchr/testify/assert"
 )

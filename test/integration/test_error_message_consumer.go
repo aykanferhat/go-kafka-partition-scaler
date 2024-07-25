@@ -2,6 +2,7 @@ package integration
 
 import (
 	"context"
+
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 )
 

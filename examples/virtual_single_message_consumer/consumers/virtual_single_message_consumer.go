@@ -2,6 +2,7 @@ package consumers
 
 import (
 	"context"
+
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 )
 
