@@ -57,10 +57,11 @@ clients and enabling efficient and scalable message consumption.
 
 ### Installation
 
-```sh
-...loading...
-```
+Supports 1.18+ Go versions because of Go Generics
 
+```sh
+go get github.com/aykanferhat/go-kafka-partition-scaler.git
+```
 
 ### Cluster Config
 
