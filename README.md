@@ -256,17 +256,17 @@ consumer
 
 ```go
     consumersList := []*partitionscaler.ConsumerGroupConsumers{
-{
-ConfigName:               "consumer",
-Consumer:                 consumers.NewConsumer(),
-RetryConsumer: // custom RetryConsumer, 
-BatchConsumer:            consumers.NewBatchConsumer(),
-BatchRetryConsumer:   // custom BatchRetryConsumer,
-ErrorConsumer:        // custom BatchRetryConsumer,
-ConsumerInterceptors: // specific ConsumerInterceptor,
-ConsumerErrorInterceptor: // specific ConsumerErrorInterceptor,
-},
-}
+         {
+            ConfigName:               "consumer",
+            Consumer:                 consumers.NewConsumer(),
+            RetryConsumer: // custom RetryConsumer, 
+            BatchConsumer:            consumers.NewBatchConsumer(),
+            BatchRetryConsumer:   // custom BatchRetryConsumer,
+            ErrorConsumer:        // custom BatchRetryConsumer,
+            ConsumerInterceptors: // specific ConsumerInterceptor,
+            ConsumerErrorInterceptor: // specific ConsumerErrorInterceptor,
+         },
+    }
 ```
 
 ### Consumer Initializer Example
@@ -332,22 +332,26 @@ You can set to a specific consumer
 
 ```go
     consumerInterceptor := interceptors.NewConsumerInterceptor()
-consumersList := []*partitionscaler.ConsumerGroupConsumers{
-{ConfigName: "consumer", ConsumerInterceptors: []*partitionscaler.ConsumerInterceptor{consumerInterceptor}, Consumer: consumers.NewCoreExampleConsumer()}
-}
+	consumersList := []*partitionscaler.ConsumerGroupConsumers{
+                {
+			ConfigName: "consumer", ConsumerInterceptors: []*partitionscaler.ConsumerInterceptor{consumerInterceptor}, Consumer: consumers.NewCoreExampleConsumer()
+		}
+	}
 ```
 
 or for all consumer
 
 ```go
     consumerInterceptor := interceptors.NewConsumerInterceptor()
-consumersList := []*partitionscaler.ConsumerGroupConsumers{
-{ConfigName: "consumer", Consumer: consumers.NewConsumer()},
-}
-consumerGroups, errorConsumers, err := partitionscaler.
-NewConsumerBuilder(clusterConfigMap, consumerConfig, consumersList).
-Interceptor(consumerInterceptor).
-Initialize()
+    consumersList := []*partitionscaler.ConsumerGroupConsumers{
+        {
+			ConfigName: "consumer", Consumer: consumers.NewConsumer()
+		},
+    }
+	
+    consumerGroups, errorConsumers, err := partitionscaler.NewConsumerBuilder(clusterConfigMap, consumerConfig, consumersList).
+        Interceptor(consumerInterceptor).
+        Initialize()
 ```
 
 ### Producer Topic Config
@@ -483,11 +487,10 @@ You can set to producer
 ```go
     producerInterceptor := interceptors.NewProducerInterceptor()
 
-producer, err := partitionscaler.
-NewProducerBuilderWithConfig(clusterConfigMap, producerTopicConfigMap).
-Log(log).
-Interceptor(producerInterceptor).
-Initialize()
+    producer, err := partitionscaler.NewProducerBuilderWithConfig(clusterConfigMap, producerTopicConfigMap).
+        Log(log).
+        Interceptor(producerInterceptor).
+        Initialize()
 ```
 
 ## How does it work?
