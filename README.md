@@ -60,7 +60,7 @@ clients and enabling efficient and scalable message consumption.
 Supports 1.18+ Go versions because of Go Generics
 
 ```sh
-go get github.com/aykanferhat/go-kafka-partition-scaler.git
+go get github.com/aykanferhat/go-kafka-partition-scaler
 ```
 
 ### Cluster Config
