@@ -1,0 +1,14 @@
+stage:
+  cluster1:
+    clientId: "kafka-partition-scaler-example"
+    brokers:
+      broker1,
+      broker2
+    version: "2.2.0"
+    errorConfig:
+      groupId: "product.kafka-partition-scaler.error-consumer.0"
+      cron: "0 */5 * * *"
+      maxErrorCount: 3
+      closeConsumerWhenThereIsNoMessage: "10m"
+      closeConsumerWhenMessageIsNew: "20m"
+      maxProcessingTime: "10s"

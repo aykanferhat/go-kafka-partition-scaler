@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="go test integration" type="GoTestRunConfiguration" factoryName="Go Test">
+    <module name="go-kafka-partition-scaler" />
+    <working_directory value="$PROJECT_DIR$/test/integration" />
+    <go_parameters value="-timeout 20m" />
+    <root_directory value="$PROJECT_DIR$/../partitionscaler" />
+    <kind value="PACKAGE" />
+    <package value="github.com/Trendyol/go-kafka-partition-scaler/test/integration" />
+    <directory value="$PROJECT_DIR$/../partitionscaler/test/integration" />
+    <filePath value="$PROJECT_DIR$/../partitionscaler" />
+    <framework value="gotest" />
+    <method v="2" />
+  </configuration>
+</component>

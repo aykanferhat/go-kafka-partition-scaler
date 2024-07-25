@@ -1,0 +1,11 @@
+virtualBatchMessageConsumer:
+  groupId: product.kafka-partition-scaler-example.topic.0.batch
+  name: product.kafka-partition-scaler-example.topic.0
+  retry: product.kafka-partition-scaler-example.0.batch.retry.0
+  error: product.kafka-partition-scaler-example.error.0
+  maxProcessingTime: "1s"
+  retryCount: 3
+  cluster: "cluster1"
+  virtualPartitionCount: 10
+  batchSize: 30
+  consumeBatchListenerLatency: "2s"

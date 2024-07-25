@@ -1,0 +1,28 @@
+stages:
+  - Vendoring
+
+.go-cache:
+  variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+  before_script:
+    - mkdir -p .go
+  cache:
+    paths:
+      - .go/pkg/mod/
+
+Vendoring:
+  image: registry.trendyol.com/product/spda/gdk:release-3539365d
+  stage: Vendoring
+  extends: .go-cache
+  artifacts:
+    paths:
+      - vendor/
+  before_script:
+    - cp -a /app/* .
+  script:
+    - make vendor
+    - make auto-version
+  except:
+    - tags
+  only:
+    - master

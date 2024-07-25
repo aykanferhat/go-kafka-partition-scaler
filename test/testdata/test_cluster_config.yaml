@@ -1,0 +1,46 @@
+stage:
+  defaultNoError:
+    clientId: "test-client-id"
+    brokers:
+      default-broker1,
+      default-broker2
+    version: "2.2.0"
+    producerConfig:
+      requiredAcks: "WaitForAll"
+      timeout: "5s"
+  default:
+    clientId: "test-client-id"
+    brokers:
+      default-broker1,
+      default-broker2
+    version: "2.2.0"
+    errorConfig:
+      groupId: "test-error-topic"
+      cron: "0 */5 * * *"
+      maxErrorCount: 3
+      closeConsumerWhenThereIsNoMessage: "1m"
+      closeConsumerWhenMessageIsNew: "5m"
+      maxProcessingTime: "1m"
+    producerConfig:
+      requiredAcks: "WaitForLocal"
+      timeout: "30s"
+      maxMessageBytes: "1mb"
+  stretch:
+    clientId: "test-client-id"
+    brokers:
+      stretch-broker1,
+      stretch-broker2
+    version: "2.2.0"
+    errorConfig:
+      groupId: "test-error-topic"
+      cron: "0 */5 * * *"
+      maxErrorCount: 3
+      closeConsumerWhenThereIsNoMessage: "1m"
+      closeConsumerWhenMessageIsNew: "5m"
+      maxProcessingTime: "1m"
+    auth:
+      username: "username"
+      password: "password"
+      certificates:
+        - "ca.pem"
+        - "int.pem"

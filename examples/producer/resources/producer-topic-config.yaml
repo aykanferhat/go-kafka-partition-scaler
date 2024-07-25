@@ -1,0 +1,3 @@
+producerTopic:
+  name: product.kafka-partition-scaler-example.topic.0
+  cluster: "cluster1"

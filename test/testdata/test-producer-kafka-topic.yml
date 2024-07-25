@@ -1,0 +1,6 @@
+topic1:
+  name: test.message.topic1.0
+  cluster: "default"
+topic2:
+  name: test.message.topic2.0
+  cluster: "stretch"

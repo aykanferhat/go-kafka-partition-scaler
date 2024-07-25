@@ -1,0 +1,45 @@
+coreExample:
+  groupId: product.kafka-partition-scaler-example.topic.0.core
+  name: product.kafka-partition-scaler-example.topic.0
+  retry: product.kafka-partition-scaler-example.0.core.retry.0
+  error: product.kafka-partition-scaler-example.error.0
+  retryCount: 3
+  cluster: "stretch"
+singleExample:
+  groupId: product.kafka-partition-scaler-example.topic.0.single
+  name: product.kafka-partition-scaler-example.topic.0
+  retry: product.kafka-partition-scaler-example.0.single.retry.0
+  error: product.kafka-partition-scaler-example.error.0
+  maxProcessingTime: "5s"
+  retryCount: 3
+  cluster: "stretch"
+  virtualPartitionCount: 10
+  offsetInitial: "oldest" # we can change default properties
+  sessionTimeout: "100s"
+  rebalanceTimeout: "80s"
+  heartbeatInterval: "10s"
+batchExample:
+  groupId: product.kafka-partition-scaler-example.topic.0.batch
+  name: product.kafka-partition-scaler-example.topic.0
+  retry: product.kafka-partition-scaler-example.0.batch.retry.0
+  error: product.kafka-partition-scaler-example.error.0
+  maxProcessingTime: "10s"
+  retryCount: 5
+  cluster: "stretch"
+  virtualPartitionCount: 15
+  batchSize: 30
+  consumeBatchListenerLatency: "2s"
+  fetchMaxBytes: "1mb"
+uniqueExample:
+  groupId: product.kafka-partition-scaler-example.topic.0.unique
+  name: product.kafka-partition-scaler-example.topic.0
+  retry: product.kafka-partition-scaler-example.0.unique.retry.0
+  error: product.kafka-partition-scaler-example.error.0
+  maxProcessingTime: "2s"
+  retryCount: 2
+  cluster: "stretch"
+  virtualPartitionCount: 10
+  batchSize: 100
+  consumeBatchListenerLatency: "1s"
+  uniqueListener: true
+  fetchMaxBytes: "1mb"
