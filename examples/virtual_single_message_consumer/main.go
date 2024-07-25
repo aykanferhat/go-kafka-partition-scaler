@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	clusterConfigPath  = "path.../kafka-cluster-config.yaml"
-	consumerConfigPath = "path.../consumer-group-config.yaml"
+	clusterConfigPath  = "resources/kafka-cluster-config.yaml"
+	consumerConfigPath = "resources/consumer-group-config.yaml"
 )
 
 func main() {
-	clusterConfigMap, err := partitionscaler.ReadKafkaClusterConfigWithProfile(clusterConfigPath, "stage")
+	clusterConfigMap, err := partitionscaler.ReadKafkaClusterConfig(clusterConfigPath)
 	if err != nil {
 		panic(err)
 	}

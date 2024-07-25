@@ -10,12 +10,12 @@ import (
 )
 
 const (
-	clusterConfigPath  = "path.../kafka-cluster-config.yaml"
-	producerConfigPath = "./resources/producer-topic-config.yaml"
+	clusterConfigPath  = "resources/kafka-cluster-config.yaml"
+	producerConfigPath = "resources/producer-topic-config.yaml"
 )
 
 func main() {
-	clusterConfigMap, err := partitionscaler.ReadKafkaClusterConfigWithProfile(clusterConfigPath, "stage")
+	clusterConfigMap, err := partitionscaler.ReadKafkaClusterConfig(clusterConfigPath)
 	if err != nil {
 		panic(err)
 	}
