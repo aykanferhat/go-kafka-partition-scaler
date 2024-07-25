@@ -57,7 +57,7 @@ clients and enabling efficient and scalable message consumption.
 
 ### Installation
 
-Supports 1.21+ Go versions because of Go Generics
+Supports 1.18+ Go versions because of Go Generics
 
 ```sh
 go get github.com/aykanferhat/go-kafka-partition-scaler
