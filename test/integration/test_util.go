@@ -48,7 +48,7 @@ func InitializeTestCluster(
 	partition int32,
 ) (kafkaContainer *containerKafka.KafkaContainer, producers partitionscaler.Producer, consumers map[string]partitionscaler.ConsumerGroup, errorConsumers map[string]partitionscaler.ErrorConsumerGroup) {
 	for {
-		timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		timeoutContext, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 		startedChan := make(chan bool)
 		kafkaContainer, producers, consumers, errorConsumers = initializeTestCluster(
 			ctx,
