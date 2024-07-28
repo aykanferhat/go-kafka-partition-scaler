@@ -2,9 +2,10 @@ package integration
 
 import (
 	"context"
-	"github.com/IBM/sarama"
 	"testing"
 	"time"
+
+	"github.com/IBM/sarama"
 
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 	"github.com/Trendyol/go-kafka-partition-scaler/test/testdata"
@@ -36,9 +37,9 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T)
 	consumerConfigs := map[string]*partitionscaler.ConsumerGroupConfig{
 		topicConfigName: {
 			GroupID:               groupID,
-			Name:                  "message.topic.0",
-			Retry:                 "message.topic.RETRY.0",
-			Error:                 "message.topic.ERROR.0",
+			Name:                  topic,
+			Retry:                 retryTopic,
+			Error:                 errorTopic,
 			RetryCount:            3,
 			VirtualPartitionCount: 1,
 			MaxProcessingTime:     1 * time.Second,
@@ -116,8 +117,8 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenMessageIsNew(t *testing.T) {
 		topicConfigName: {
 			GroupID:               groupID,
 			Name:                  topic,
-			Retry:                 "message.topic.RETRY.0",
-			Error:                 "message.topic.ERROR.0",
+			Retry:                 retryTopic,
+			Error:                 errorTopic,
 			RetryCount:            1,
 			VirtualPartitionCount: 1,
 			MaxProcessingTime:     1 * time.Second,
@@ -167,27 +168,31 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenMessageIsNew(t *testing.T) {
 	}()
 
 	consumerGroup := consumerGroups[groupID]
-	_ = consumerGroup.Subscribe()
-
 	errorConsumerGroup := errorConsumerGroups[errorGroupID]
+
+	_ = consumerGroup.Subscribe()
 
 	consumerGroup.WaitConsumerStart()
 	errorConsumerGroup.WaitConsumerStart()
 
-	if err := producers.ProduceSyncBulk(ctx, []partitionscaler.Message{
+	produceMessages := []partitionscaler.Message{
 		&testdata.TestWrongTypeProducerMessage{Id: "100", Name: "Test Message 1"},
 		&testdata.TestWrongTypeProducerMessage{Id: "101", Name: "Test Message 2"},
-	}, 100); err != nil {
+	}
+
+	if err := producers.ProduceSyncBulk(ctx, produceMessages, 100); err != nil {
 		assert.NilError(t, err)
 	} // wrong message type
 
 	// Then
 
 	errorConsumerGroup.WaitConsumerStop()
-	assert.Equal(t, false, errorConsumerGroup.IsRunning())
-
 	consumerGroup.Unsubscribe()
 	consumerGroup.WaitConsumerStop()
+
+	// Then
+	close(consumedMessageChan)
+	assert.Equal(t, false, errorConsumerGroup.IsRunning())
 }
 
 func Test_ErrorConsumer_ShouldCloseConsumerWhenUnsubscribe(t *testing.T) {
@@ -266,9 +271,9 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenUnsubscribe(t *testing.T) {
 	}()
 
 	consumerGroup := consumerGroups[groupID]
-	_ = consumerGroup.Subscribe()
-
 	errorConsumerGroup := errorConsumerGroups[errorGroupID]
+
+	_ = consumerGroup.Subscribe()
 
 	consumerGroup.WaitConsumerStart()
 	errorConsumerGroup.WaitConsumerStart()

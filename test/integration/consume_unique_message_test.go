@@ -2,9 +2,10 @@ package integration
 
 import (
 	"context"
-	"github.com/IBM/sarama"
 	"testing"
 	"time"
+
+	"github.com/IBM/sarama"
 
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 	"github.com/Trendyol/go-kafka-partition-scaler/test/testdata"
@@ -67,7 +68,7 @@ func Test_UniqueConsumer_ShouldConsumeMessage(t *testing.T) {
 	producerInterceptor := NewTestProducerInterceptor()
 
 	// When
-	kafkaContainer, producers, consumers, _ := InitializeTestCluster(
+	kafkaContainer, producers, consumers, errorConsumers := InitializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -88,6 +89,8 @@ func Test_UniqueConsumer_ShouldConsumeMessage(t *testing.T) {
 	}()
 
 	consumerGroup := consumers[groupID]
+	errorConsumerGroup := errorConsumers[errorGroupID]
+
 	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
@@ -129,8 +132,10 @@ func Test_UniqueConsumer_ShouldConsumeMessage(t *testing.T) {
 			}
 
 			consumerGroup.Unsubscribe()
-			consumerGroup.WaitConsumerStop()
+			errorConsumerGroup.Unsubscribe()
 
+			consumerGroup.WaitConsumerStop()
+			errorConsumerGroup.WaitConsumerStop()
 			close(consumedMessageChan)
 			break
 		}

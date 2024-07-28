@@ -2,9 +2,10 @@ package integration
 
 import (
 	"context"
-	"github.com/IBM/sarama"
 	"testing"
 	"time"
+
+	"github.com/IBM/sarama"
 
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 	"github.com/Trendyol/go-kafka-partition-scaler/pkg/json"
@@ -94,8 +95,9 @@ func Test_DefaultErrorConsumer_ShouldConsumeThrowableMessage(t *testing.T) {
 	}()
 
 	consumerGroup := consumers[groupID]
-	_ = consumerGroup.Subscribe()
 	errorConsumerGroup := errorConsumers[errorGroupID]
+
+	_ = consumerGroup.Subscribe()
 
 	consumerGroup.WaitConsumerStart()
 	errorConsumerGroup.WaitConsumerStart()

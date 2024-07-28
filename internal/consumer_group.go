@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/Trendyol/go-kafka-partition-scaler/pkg/csmap"
@@ -27,6 +28,7 @@ type consumerGroup struct {
 	cg                          kafka.ConsumerGroup
 	processedMessageListeners   *csmap.ConcurrentSwissMap[string, ProcessedMessageListener]
 	consumerGroupStatusListener *ConsumerGroupStatusListener
+	mutex                       *sync.Mutex
 	initializedContext          ConsumerGroupInitializeContext
 }
 
@@ -48,6 +50,7 @@ func NewConsumerGroup(
 		initializedContext:          initializedContext,
 		processedMessageListeners:   csmap.Create[string, ProcessedMessageListener](0),
 		consumerGroupStatusListener: newConsumerGroupStatusListener(),
+		mutex:                       &sync.Mutex{},
 	}
 	return consumerGroup
 }
@@ -108,6 +111,10 @@ func (c *consumerGroup) GetGroupID() string {
 }
 
 func (c *consumerGroup) Subscribe() error {
+	c.mutex.Lock()
+	defer func() {
+		c.mutex.Unlock()
+	}()
 	var messageHandler handler.MessageHandler
 	if c.initializedContext.ConsumerGroupConfig.VirtualPartitionCount != 0 {
 		messageHandler = c.HandleVirtual()
@@ -134,6 +141,10 @@ func (c *consumerGroup) Subscribe() error {
 }
 
 func (c *consumerGroup) Unsubscribe() {
+	c.mutex.Lock()
+	defer func() {
+		c.mutex.Unlock()
+	}()
 	if c.cg == nil {
 		return
 	}

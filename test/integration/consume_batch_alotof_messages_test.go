@@ -3,10 +3,11 @@ package integration
 import (
 	"context"
 	"crypto/rand"
-	"github.com/IBM/sarama"
 	"math/big"
 	"testing"
 	"time"
+
+	"github.com/IBM/sarama"
 
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 
@@ -72,7 +73,7 @@ func Test_BatchConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 
 	// When
 
-	kafkaContainer, producers, consumers, _ := InitializeTestCluster(
+	kafkaContainer, producers, consumers, errorConsumers := InitializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -93,6 +94,8 @@ func Test_BatchConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 	}()
 
 	consumerGroup := consumers[groupID]
+	errorConsumerGroup := errorConsumers[errorGroupID]
+
 	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
@@ -119,7 +122,10 @@ func Test_BatchConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 			}
 
 			consumerGroup.Unsubscribe()
+			errorConsumerGroup.Unsubscribe()
+
 			consumerGroup.WaitConsumerStop()
+			errorConsumerGroup.WaitConsumerStop()
 			close(consumedMessagesChan)
 			break
 		}

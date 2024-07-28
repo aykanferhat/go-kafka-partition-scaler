@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/Trendyol/go-kafka-partition-scaler/pkg/cron"
@@ -30,6 +31,7 @@ type errorConsumerGroup struct {
 	scheduleToSubscribeCron     *cron.Cron
 	consumerGroupStatusTicker   *time.Ticker
 	consumerGroupStatusListener *ConsumerGroupStatusListener
+	mutex                       *sync.Mutex
 	tracers                     []Tracer
 	subscribed                  bool
 	running                     bool
@@ -51,6 +53,7 @@ func NewErrorConsumerGroup(
 		tracers:                     tracers,
 		consumerGroupStatusTicker:   time.NewTicker(2 * time.Second),
 		consumerGroupStatusListener: newConsumerGroupStatusListener(),
+		mutex:                       &sync.Mutex{},
 	}
 	errorConsumerGroup.listenUnSubscribableStatus()
 	return errorConsumerGroup, nil
@@ -98,6 +101,10 @@ func (c *errorConsumerGroup) GetGroupID() string {
 }
 
 func (c *errorConsumerGroup) Subscribe() {
+	c.mutex.Lock()
+	defer func() {
+		c.mutex.Unlock()
+	}()
 	if !c.existsErrorTopic() {
 		return
 	}
@@ -125,6 +132,12 @@ func (c *errorConsumerGroup) Subscribe() {
 }
 
 func (c *errorConsumerGroup) Unsubscribe() {
+	c.mutex.Lock()
+	defer func() {
+		c.mutex.Unlock()
+		c.subscribed = false
+	}()
+	c.consumerGroupStatusListener.listenConsumerStop()
 	if !c.existsErrorTopic() || c.cg == nil {
 		return
 	}
@@ -132,9 +145,7 @@ func (c *errorConsumerGroup) Unsubscribe() {
 		log.Errorf("errorConsumerGroup Unsubscribe err: %s", err.Error())
 		return
 	}
-	c.consumerGroupStatusListener.listenConsumerStop()
 	c.cg = nil
-	c.subscribed = false
 	log.Infof("errorConsumerGroup Unsubscribed, groupId: %s", c.errorConsumerConfig.GroupID)
 }
 

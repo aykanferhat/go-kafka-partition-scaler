@@ -241,7 +241,6 @@ func initializeErrorConsumerTestCluster(
 			}
 		}
 	}
-	time.Sleep(2 * time.Second) // After creating a topic, wait for synchronization.
 	log.Logger = log.NewConsoleLog(log.INFO)
 	producers, err := partitionscaler.NewProducerBuilderWithConfig(clusterConfigsMap, producerTopicMap).
 		Interceptor(producerInterceptor).

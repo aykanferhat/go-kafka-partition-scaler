@@ -2,9 +2,10 @@ package integration
 
 import (
 	"context"
-	"github.com/IBM/sarama"
 	"testing"
 	"time"
+
+	"github.com/IBM/sarama"
 
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 

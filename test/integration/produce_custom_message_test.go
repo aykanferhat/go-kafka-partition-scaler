@@ -2,9 +2,10 @@ package integration
 
 import (
 	"context"
-	"github.com/IBM/sarama"
 	"testing"
 	"time"
+
+	"github.com/IBM/sarama"
 
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 	"github.com/Trendyol/go-kafka-partition-scaler/pkg/json"
@@ -18,16 +19,8 @@ func Test_Producer_ShouldProduceCustomMessage(t *testing.T) {
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
-			Brokers: "", // dynamic
-			Version: sarama.V3_6_0_0.String(),
-			ErrorConfig: &partitionscaler.ErrorConfig{
-				GroupID:                           errorGroupID,
-				Cron:                              "0 */5 * * *",
-				MaxErrorCount:                     3,
-				MaxProcessingTime:                 1 * time.Second,
-				CloseConsumerWhenThereIsNoMessage: 1 * time.Minute,
-				CloseConsumerWhenMessageIsNew:     1 * time.Minute,
-			},
+			Brokers:  "", // dynamic
+			Version:  sarama.V3_6_0_0.String(),
 			ClientID: "client-id",
 		},
 	}

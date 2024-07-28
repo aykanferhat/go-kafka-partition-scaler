@@ -90,6 +90,10 @@ func (listener *ConsumerGroupStatusListener) listenConsumerStop() {
 	go func() {
 		for {
 			allStopped := false
+			if listener.consumerGroupStatusMap.Count() == 0 {
+				listener.stoppedChan <- true
+				return
+			}
 			listener.consumerGroupStatusMap.Range(func(key string, status *ConsumerGroupStatus) bool {
 				if status.IsStarted() {
 					allStopped = false
