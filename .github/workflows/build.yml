@@ -38,7 +38,7 @@ jobs:
         run: go build -v ./...
 
       - name: Test
-        run: go test -v ./test/internal
+        run: go test -v ./internal
 
       - name: IntegrationTest
         run: go test -v ./test/integration
