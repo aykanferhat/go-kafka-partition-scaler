@@ -35,8 +35,8 @@ func Test_Producer_ShouldProduceCustomMessage(t *testing.T) {
 		topicConfigName: {
 			GroupID:           groupID,
 			Name:              topic,
-			Retry:             "message.topic.RETRY.0",
-			Error:             "message.topic.ERROR.0",
+			Retry:             retryTopic,
+			Error:             errorTopic,
 			RetryCount:        3,
 			MaxProcessingTime: 1 * time.Second,
 			Cluster:           clusterName,
@@ -67,7 +67,6 @@ func Test_Producer_ShouldProduceCustomMessage(t *testing.T) {
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -75,6 +74,8 @@ func Test_Producer_ShouldProduceCustomMessage(t *testing.T) {
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	err := producers.ProduceCustomSync(ctx, &partitionscaler.CustomMessage{
@@ -95,11 +96,9 @@ func Test_Producer_ShouldProduceCustomMessage(t *testing.T) {
 	// Then
 	consumedMessage := <-consumedMessageChan
 
-	for _, consumerGroup := range consumers {
-		consumerGroup.Unsubscribe()
-	}
-
+	consumerGroup.Unsubscribe()
 	consumerGroup.WaitConsumerStop()
+	close(consumedMessageChan)
 
 	var message testdata.TestConsumedMessage
 	if err := json.Unmarshal(consumedMessage.Value, &message); err != nil {

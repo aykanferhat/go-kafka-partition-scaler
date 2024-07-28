@@ -57,7 +57,7 @@ func (listener *ConsumerGroupStatusListener) HandleConsumerGroupStatus() kafka.C
 		if status {
 			s = AssignedTopicPartition
 		}
-		listener.Listen(&ConsumerGroupStatus{Time: time.Now(), Topic: topic, Status: s, Partition: partition, Offset: -1})
+		listener.Listen(&ConsumerGroupStatus{Time: time.Now(), Topic: topic, Status: s, Partition: partition, Offset: -2})
 	}
 }
 

@@ -24,10 +24,10 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessage(t *testing.T) {
 			Version: "2.2.0",
 			ErrorConfig: &partitionscaler.ErrorConfig{
 				GroupID:                           errorGroupID,
-				Cron:                              everyThirtySeconds,
+				Cron:                              everyTenSeconds,
 				MaxErrorCount:                     1,
 				MaxProcessingTime:                 1 * time.Second,
-				CloseConsumerWhenThereIsNoMessage: 1 * time.Minute,
+				CloseConsumerWhenThereIsNoMessage: 2 * time.Minute,
 				CloseConsumerWhenMessageIsNew:     closeConsumerWhenMessageIsNew,
 			},
 			ClientID: "client-id",
@@ -73,7 +73,8 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessage(t *testing.T) {
 		t,
 		clusterConfigsMap,
 		producerTopicsMap,
-		consumerConfigs, consumersList,
+		consumerConfigs,
+		consumersList,
 		consumerInterceptor,
 		consumerErrorInterceptor,
 		producerInterceptor,
@@ -82,6 +83,8 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessage(t *testing.T) {
 		totalPartition,
 	)
 	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
+	errorConsumerGroup := errorConsumers[errorGroupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -90,18 +93,15 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessage(t *testing.T) {
 	}()
 
 	consumerGroup.WaitConsumerStart()
-
-	for _, consumerGroup := range errorConsumers {
-		consumerGroup.WaitConsumerStart()
-	}
+	errorConsumerGroup.WaitConsumerStart()
 
 	if err := producers.ProduceSync(ctx, &testdata.TestWrongTypeProducerMessage{Id: "100", Name: "Test Message"}); err != nil {
 		assert.NilError(t, err)
 	} // wrong message type
 
 	// Then
-	go func(consumedMessageCh chan *partitionscaler.ConsumerMessage, consumedErrorMessageCh chan *partitionscaler.ConsumerMessage) {
-		consumedErrorMessage := <-consumedErrorMessageCh
+	go func() {
+		consumedErrorMessage := <-consumedErrorMessageChan
 		var errMessage testdata.TestWrongTypeProducerMessage
 		if err := json.Unmarshal(consumedErrorMessage.Value, &errMessage); err != nil {
 			assert.NilError(t, err)
@@ -114,9 +114,9 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessage(t *testing.T) {
 		assert.Equal(t, consumedErrorMessage.VirtualPartition, 0)
 		assert.Equal(t, consumedErrorMessage.Offset, int64(0))
 
-		close(consumedMessageCh)
-		close(consumedErrorMessageCh)
-	}(consumedMessageChan, consumedErrorMessageChan)
+		close(consumedMessageChan)
+		close(consumedErrorMessageChan)
+	}()
 
 	consumedMessages := make([]*partitionscaler.ConsumerMessage, 0)
 	consumedRetiedMessages := make([]*partitionscaler.ConsumerMessage, 0)
@@ -128,6 +128,13 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessage(t *testing.T) {
 		consumedMessages = append(consumedMessages, consumedMessage)
 	}
 
+	consumerGroup.Unsubscribe()
+	errorConsumerGroup.Unsubscribe()
+
+	consumerGroup.WaitConsumerStop()
+	errorConsumerGroup.WaitConsumerStop()
+
+	assert.Equal(t, false, errorConsumerGroup.IsRunning())
 	assert.Equal(t, 1, len(consumedMessages))
 	assert.Equal(t, maxRetryCount, len(consumedRetiedMessages))
 }
@@ -137,20 +144,11 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenErrorTopicNotFound(t *te
 	ctx := context.Background()
 
 	maxRetryCount := 1
-	closeConsumerWhenMessageIsNew := time.Millisecond
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
-			Brokers: "", // dynamic
-			Version: "2.2.0",
-			ErrorConfig: &partitionscaler.ErrorConfig{
-				GroupID:                           errorGroupID,
-				Cron:                              everyThirtySeconds,
-				MaxErrorCount:                     1,
-				MaxProcessingTime:                 1 * time.Second,
-				CloseConsumerWhenThereIsNoMessage: 1 * time.Minute,
-				CloseConsumerWhenMessageIsNew:     closeConsumerWhenMessageIsNew,
-			},
+			Brokers:  "", // dynamic
+			Version:  "2.2.0",
 			ClientID: "client-id",
 		},
 	}
@@ -188,7 +186,7 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenErrorTopicNotFound(t *te
 	consumedLastStepErrMessageChan := make(chan *partitionscaler.ConsumerMessage, 1)
 
 	// When
-	kafkaContainer, producers, consumers, _ := InitializeTestCluster(
+	kafkaContainer, producers, consumers, errorConsumers := InitializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -203,7 +201,6 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenErrorTopicNotFound(t *te
 		},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -211,6 +208,8 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenErrorTopicNotFound(t *te
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	if err := producers.ProduceSync(ctx, &testdata.TestWrongTypeProducerMessage{Id: "100", Name: "Test Message"}); err != nil {
@@ -232,6 +231,9 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenErrorTopicNotFound(t *te
 		assert.Equal(t, consumedErrorMessage.VirtualPartition, 0)
 		assert.Equal(t, consumedErrorMessage.Offset, int64(0))
 
+		consumerGroup.Unsubscribe()
+		consumerGroup.WaitConsumerStop()
+
 		close(consumedMessageCh)
 		close(consumedLastStepErrorMessageCh)
 	}(consumedMessageChan, consumedLastStepErrMessageChan)
@@ -246,6 +248,7 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenErrorTopicNotFound(t *te
 		consumedMessages = append(consumedMessages, consumedMessage)
 	}
 
+	assert.Equal(t, 0, len(errorConsumers))
 	assert.Equal(t, 1, len(consumedMessages))
 	assert.Equal(t, maxRetryCount, len(consumedRetiedMessages))
 }
@@ -317,14 +320,17 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenRetryTopicNotFound(t *te
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
-	errorConsumerGroup := errorConsumers[errorGroupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
 			assert.NilError(t, err)
 		}
 	}()
+
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
+
+	errorConsumerGroup := errorConsumers[errorGroupID]
 
 	consumerGroup.WaitConsumerStart()
 	errorConsumerGroup.WaitConsumerStart()
@@ -348,6 +354,12 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenRetryTopicNotFound(t *te
 		assert.Equal(t, consumedErrorMessage.VirtualPartition, 0)
 		assert.Equal(t, consumedErrorMessage.Offset, int64(0))
 
+		consumerGroup.Unsubscribe()
+		errorConsumerGroup.Unsubscribe()
+
+		consumerGroup.WaitConsumerStop()
+		errorConsumerGroup.WaitConsumerStop()
+
 		close(consumedMessageCh)
 		close(consumedErrorMessageCh)
 	}(consumedMessageChan, consumedErrorMessageChan)
@@ -357,6 +369,7 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenRetryTopicNotFound(t *te
 		consumedMessages = append(consumedMessages, consumedMessage)
 	}
 
+	assert.Equal(t, false, errorConsumerGroup.IsRunning())
 	assert.Equal(t, 1, len(consumedMessages))
 }
 
@@ -364,20 +377,10 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenRetryAndErrorTopicNotFou
 	// Given
 	ctx := context.Background()
 
-	closeConsumerWhenMessageIsNew := time.Millisecond
-
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
-			Brokers: "", // dynamic
-			Version: "2.2.0",
-			ErrorConfig: &partitionscaler.ErrorConfig{
-				GroupID:                           groupID,
-				Cron:                              everyFifteenSeconds,
-				MaxErrorCount:                     1,
-				MaxProcessingTime:                 1 * time.Second,
-				CloseConsumerWhenThereIsNoMessage: 1 * time.Minute,
-				CloseConsumerWhenMessageIsNew:     closeConsumerWhenMessageIsNew,
-			},
+			Brokers:  "", // dynamic
+			Version:  "2.2.0",
 			ClientID: "client-id",
 		},
 	}
@@ -413,7 +416,7 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenRetryAndErrorTopicNotFou
 	consumedLastStepErrorMessageChan := make(chan *partitionscaler.ConsumerMessage, 1)
 
 	// When
-	kafkaContainer, producers, consumers, _ := InitializeTestCluster(
+	kafkaContainer, producers, consumers, errorConsumers := InitializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -428,7 +431,6 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenRetryAndErrorTopicNotFou
 		},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -436,6 +438,8 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenRetryAndErrorTopicNotFou
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	if err := producers.ProduceSync(ctx, &testdata.TestWrongTypeProducerMessage{Id: "100", Name: "Test Message"}); err != nil {
@@ -443,8 +447,8 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenRetryAndErrorTopicNotFou
 	} // wrong message type
 
 	// Then
-	go func(consumedMessageCh chan *partitionscaler.ConsumerMessage, consumedErrorMessageCh chan *partitionscaler.ConsumerMessage) {
-		consumedErrorMessage := <-consumedErrorMessageCh
+	go func() {
+		consumedErrorMessage := <-consumedLastStepErrorMessageChan
 		var errMessage testdata.TestWrongTypeProducerMessage
 		if err := json.Unmarshal(consumedErrorMessage.Value, &errMessage); err != nil {
 			assert.NilError(t, err)
@@ -457,14 +461,18 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenRetryAndErrorTopicNotFou
 		assert.Equal(t, consumedErrorMessage.VirtualPartition, 0)
 		assert.Equal(t, consumedErrorMessage.Offset, int64(0))
 
-		close(consumedMessageCh)
-		close(consumedErrorMessageCh)
-	}(consumedMessageChan, consumedLastStepErrorMessageChan)
+		consumerGroup.Unsubscribe()
+		consumerGroup.WaitConsumerStop()
+
+		close(consumedMessageChan)
+		close(consumedLastStepErrorMessageChan)
+	}()
 
 	consumedMessages := make([]*partitionscaler.ConsumerMessage, 0)
 	for consumedMessage := range consumedMessageChan {
 		consumedMessages = append(consumedMessages, consumedMessage)
 	}
 
+	assert.Equal(t, 0, len(errorConsumers))
 	assert.Equal(t, 1, len(consumedMessages))
 }

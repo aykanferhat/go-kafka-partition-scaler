@@ -77,7 +77,6 @@ func Test_SingleConsumer_ShouldConsumeMessage(t *testing.T) {
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -85,6 +84,8 @@ func Test_SingleConsumer_ShouldConsumeMessage(t *testing.T) {
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	produceMessages := []partitionscaler.Message{
@@ -112,6 +113,9 @@ func Test_SingleConsumer_ShouldConsumeMessage(t *testing.T) {
 			if len(consumedMessages) != len(produceMessages) {
 				continue
 			}
+
+			consumerGroup.Unsubscribe()
+			consumerGroup.WaitConsumerStop()
 			close(consumedMessageChan)
 			break
 		}
@@ -125,11 +129,6 @@ func Test_SingleConsumer_ShouldConsumeMessage(t *testing.T) {
 		}
 		virtualPartitionConsumerMessageMap[consumedMessage.VirtualPartition] = append(virtualPartitionConsumerMessageMap[consumedMessage.VirtualPartition], consumedMessage)
 	}
-
-	for _, consumerGroup := range consumers {
-		consumerGroup.Unsubscribe()
-	}
-	consumerGroup.WaitConsumerStop()
 
 	assert.Equal(t, len(consumedMessages), len(produceMessages))
 	assert.Equal(t, len(virtualPartitionConsumerMessageMap[0]), 3)

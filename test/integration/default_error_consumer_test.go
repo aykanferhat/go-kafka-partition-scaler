@@ -26,7 +26,7 @@ func Test_DefaultErrorConsumer_ShouldConsumeThrowableMessage(t *testing.T) {
 			Version: "2.2.0",
 			ErrorConfig: &partitionscaler.ErrorConfig{
 				GroupID:                           errorGroupID,
-				Cron:                              everyThirtySeconds,
+				Cron:                              everyFifteenSeconds,
 				MaxErrorCount:                     maxErrorCount,
 				MaxProcessingTime:                 1 * time.Minute,
 				CloseConsumerWhenThereIsNoMessage: 5 * time.Minute,
@@ -85,7 +85,6 @@ func Test_DefaultErrorConsumer_ShouldConsumeThrowableMessage(t *testing.T) {
 		},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -93,11 +92,12 @@ func Test_DefaultErrorConsumer_ShouldConsumeThrowableMessage(t *testing.T) {
 		}
 	}()
 
-	consumerGroup.WaitConsumerStart()
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
+	errorConsumerGroup := errorConsumers[errorGroupID]
 
-	for _, consumerGroup := range errorConsumers {
-		consumerGroup.WaitConsumerStart()
-	}
+	consumerGroup.WaitConsumerStart()
+	errorConsumerGroup.WaitConsumerStart()
 
 	if err := producers.ProduceSync(ctx, &testdata.TestWrongTypeProducerMessage{Id: "100", Name: "Test Message"}); err != nil {
 		assert.NilError(t, err)
@@ -118,6 +118,12 @@ func Test_DefaultErrorConsumer_ShouldConsumeThrowableMessage(t *testing.T) {
 		assert.Equal(t, consumedErrorMessage.VirtualPartition, 0)
 		assert.Equal(t, consumedErrorMessage.Offset, int64(3))
 
+		consumerGroup.Unsubscribe()
+		errorConsumerGroup.Unsubscribe()
+
+		consumerGroup.WaitConsumerStop()
+		errorConsumerGroup.WaitConsumerStop()
+
 		close(consumedMessageCh)
 		close(consumedErrorMessageCh)
 	}(consumedMessageChan, consumedErrorMessageChan)
@@ -132,6 +138,7 @@ func Test_DefaultErrorConsumer_ShouldConsumeThrowableMessage(t *testing.T) {
 		consumedMessages = append(consumedMessages, consumedMessage)
 	}
 
+	assert.Equal(t, false, errorConsumerGroup.IsRunning())
 	assert.Equal(t, 1, len(consumedMessages))
 	assert.Equal(t, maxRetryCount+maxErrorCount, len(consumedRetiedMessages))
 }

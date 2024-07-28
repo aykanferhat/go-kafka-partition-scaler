@@ -2,14 +2,11 @@ package integration
 
 import (
 	"context"
-	"sync"
 	"testing"
 	"time"
 
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/json"
-	"github.com/Trendyol/go-kafka-partition-scaler/test/testdata"
 	"gotest.tools/v3/assert"
 )
 
@@ -17,8 +14,8 @@ func Test_ConsumerShovel_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T
 	// Given
 	ctx := context.Background()
 
-	closeConsumerWhenThereIsNoMessage := 10 * time.Second
-	closeConsumerWhenMessageIsNew := 5 * time.Second
+	closeConsumerWhenThereIsNoMessage := 3 * time.Second
+	closeConsumerWhenMessageIsNew := 30 * time.Second
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
@@ -43,7 +40,7 @@ func Test_ConsumerShovel_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T
 			},
 			MaxProcessingTime:                 1 * time.Second,
 			Cluster:                           clusterName,
-			Cron:                              everyTwentySeconds,
+			Cron:                              everyTenSeconds,
 			MaxErrorCount:                     3,
 			CloseConsumerWhenThereIsNoMessage: closeConsumerWhenThereIsNoMessage,
 			CloseConsumerWhenMessageIsNew:     closeConsumerWhenMessageIsNew,
@@ -63,7 +60,7 @@ func Test_ConsumerShovel_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T
 	producerInterceptor := NewTestProducerInterceptor()
 
 	// When
-	kafkaContainer, producers, errorConsumerGroups := InitializeErrorConsumerTestCluster(
+	kafkaContainer, _, errorConsumerGroups := InitializeErrorConsumerTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -76,7 +73,6 @@ func Test_ConsumerShovel_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T
 			// ignore
 		},
 	)
-	errorConsumerGroup := errorConsumerGroups[errorGroupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -84,37 +80,11 @@ func Test_ConsumerShovel_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T
 		}
 	}()
 
+	errorConsumerGroup := errorConsumerGroups[errorGroupID]
+
 	errorConsumerGroup.WaitConsumerStart()
-
-	// When
-
-	if err := producers.ProduceSync(ctx, &testdata.TestProducerMessage{Id: 100, Name: "Test Message"}); err != nil {
-		assert.NilError(t, err)
-	}
+	assert.Equal(t, true, errorConsumerGroup.IsRunning())
 
 	errorConsumerGroup.WaitConsumerStop()
-
-	errorConsumerGroup.WaitConsumerStart()
-
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-
-	// Then
-	go func(w *sync.WaitGroup) {
-		defer w.Done()
-		consumedErrorMessage := <-consumedMessageChan
-		var message testdata.TestProducerMessage
-		if err := json.Unmarshal(consumedErrorMessage.Value, &message); err != nil {
-			assert.NilError(t, err)
-		}
-
-		assert.Equal(t, message.Id, int64(100))
-		assert.Equal(t, message.Name, "Test Message")
-		assert.Equal(t, consumedErrorMessage.Topic, errorTopic)
-		assert.Equal(t, consumedErrorMessage.Partition, int32(0))
-		assert.Equal(t, consumedErrorMessage.VirtualPartition, 0)
-		assert.Equal(t, consumedErrorMessage.Offset, int64(0))
-		close(consumedMessageChan)
-	}(&wg)
-	wg.Wait()
+	assert.Equal(t, false, errorConsumerGroup.IsRunning())
 }

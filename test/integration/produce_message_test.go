@@ -74,7 +74,6 @@ func Test_Producer_ShouldProduceMessage(t *testing.T) {
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -82,6 +81,8 @@ func Test_Producer_ShouldProduceMessage(t *testing.T) {
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	if err := producers.ProduceSync(ctx, &testdata.TestProducerMessage{Id: 100, Name: "Test Message"}); err != nil {
@@ -91,11 +92,9 @@ func Test_Producer_ShouldProduceMessage(t *testing.T) {
 	// Then
 	consumedMessage := <-consumedMessageChan
 
-	for _, consumerGroup := range consumers {
-		consumerGroup.Unsubscribe()
-	}
-
+	consumerGroup.Unsubscribe()
 	consumerGroup.WaitConsumerStop()
+	close(consumedMessageChan)
 
 	var message testdata.TestConsumedMessage
 	if err := json.Unmarshal(consumedMessage.Value, &message); err != nil {

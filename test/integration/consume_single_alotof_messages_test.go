@@ -79,7 +79,6 @@ func Test_SingleConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -87,6 +86,8 @@ func Test_SingleConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	var produceMessages []partitionscaler.Message
@@ -112,9 +113,11 @@ func Test_SingleConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 	go func() {
 		for {
 			if len(consumedMessages) != len(produceMessages) {
-				time.Sleep(100 * time.Millisecond)
 				continue
 			}
+
+			consumerGroup.Unsubscribe()
+			consumerGroup.WaitConsumerStop()
 			close(consumedMessageChan)
 			break
 		}
@@ -123,11 +126,6 @@ func Test_SingleConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 	for consumedMessage := range consumedMessageChan {
 		consumedMessages = append(consumedMessages, consumedMessage)
 	}
-
-	for _, consumerGroup := range consumers {
-		consumerGroup.Unsubscribe()
-	}
-	consumerGroup.WaitConsumerStop()
 
 	assert.Equal(t, len(consumedMessages), len(produceMessages))
 }

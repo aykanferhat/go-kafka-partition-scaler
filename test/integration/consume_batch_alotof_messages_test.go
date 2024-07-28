@@ -18,7 +18,6 @@ func Test_BatchConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 	// Given
 	ctx := context.Background()
 
-	partition := int32(0)
 	virtualPartitionCount := 10
 	batchSize := 20
 
@@ -60,7 +59,10 @@ func Test_BatchConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 
 	consumedMessagesChan := make(chan []*partitionscaler.ConsumerMessage)
 	consumersList := []*partitionscaler.ConsumerGroupConsumers{
-		{BatchConsumer: NewTestBatchMessageConsumer(consumedMessagesChan), ConfigName: topicConfigName},
+		{
+			BatchConsumer: NewTestBatchMessageConsumer(consumedMessagesChan),
+			ConfigName:    topicConfigName,
+		},
 	}
 
 	consumerInterceptor := NewTestConsumerHeaderInterceptor()
@@ -68,6 +70,7 @@ func Test_BatchConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 	producerInterceptor := NewTestProducerInterceptor()
 
 	// When
+
 	kafkaContainer, producers, consumers, _ := InitializeTestCluster(
 		ctx,
 		t,
@@ -81,14 +84,15 @@ func Test_BatchConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
-			assert.NilError(t, err)
+			panic(err)
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	var produceMessages []partitionscaler.Message
@@ -112,6 +116,9 @@ func Test_BatchConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 			if consumerGroup.GetLastCommittedOffset(topic, partition) != int64(len(produceMessages)-1) {
 				continue
 			}
+
+			consumerGroup.Unsubscribe()
+			consumerGroup.WaitConsumerStop()
 			close(consumedMessagesChan)
 			break
 		}
@@ -121,9 +128,5 @@ func Test_BatchConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 	for consumedMessages := range consumedMessagesChan {
 		consumedMessagesList = append(consumedMessagesList, consumedMessages...)
 	}
-	for _, consumerGroup := range consumers {
-		consumerGroup.Unsubscribe()
-	}
-	consumerGroup.WaitConsumerStop()
 	assert.Equal(t, len(produceMessages), len(consumedMessagesList))
 }

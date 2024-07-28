@@ -37,8 +37,8 @@ func Test_BatchConsumer_ShouldConsumeMessages(t *testing.T) {
 		topicConfigName: {
 			GroupID:               groupID,
 			Name:                  topic,
-			Retry:                 "message.topic.RETRY.0",
-			Error:                 "message.topic.ERROR.0",
+			Retry:                 retryTopic,
+			Error:                 errorTopic,
 			BatchSize:             batchSize,
 			RetryCount:            3,
 			VirtualPartitionCount: 3,
@@ -55,7 +55,10 @@ func Test_BatchConsumer_ShouldConsumeMessages(t *testing.T) {
 
 	consumedMessagesChan := make(chan []*partitionscaler.ConsumerMessage)
 	consumersList := []*partitionscaler.ConsumerGroupConsumers{
-		{BatchConsumer: NewTestBatchMessageConsumer(consumedMessagesChan), ConfigName: topicConfigName},
+		{
+			BatchConsumer: NewTestBatchMessageConsumer(consumedMessagesChan),
+			ConfigName:    topicConfigName,
+		},
 	}
 
 	consumerInterceptor := NewTestConsumerHeaderInterceptor()
@@ -76,7 +79,6 @@ func Test_BatchConsumer_ShouldConsumeMessages(t *testing.T) {
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -84,6 +86,8 @@ func Test_BatchConsumer_ShouldConsumeMessages(t *testing.T) {
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	produceMessages := []partitionscaler.Message{
@@ -112,6 +116,9 @@ func Test_BatchConsumer_ShouldConsumeMessages(t *testing.T) {
 			if lastCommittedOffset != int64(len(produceMessages)-1) {
 				continue
 			}
+
+			consumerGroup.Unsubscribe()
+			consumerGroup.WaitConsumerStop()
 			close(consumedMessagesChan)
 			break
 		}
@@ -120,9 +127,6 @@ func Test_BatchConsumer_ShouldConsumeMessages(t *testing.T) {
 	for consumedMessages := range consumedMessagesChan {
 		consumedMessagesList = append(consumedMessagesList, consumedMessages)
 	}
-
-	consumerGroup.Unsubscribe()
-	consumerGroup.WaitConsumerStop()
 
 	assert.Equal(t, len(consumedMessagesList), len(produceMessages)/batchSize)
 	assert.Equal(t, len(consumedMessagesList[0]), batchSize)

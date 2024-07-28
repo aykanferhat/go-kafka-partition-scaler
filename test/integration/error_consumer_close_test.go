@@ -58,7 +58,7 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T)
 	producerInterceptor := NewTestProducerInterceptor()
 
 	// When
-	kafkaContainer, _, producers, errorConsumerGroups := InitializeTestCluster(
+	kafkaContainer, _, _, errorConsumerGroups := InitializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -71,8 +71,6 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T)
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := producers[groupID]
-	errorConsumerGroup := errorConsumerGroups[errorGroupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -80,11 +78,13 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T)
 		}
 	}()
 
-	consumerGroup.WaitConsumerStart()
+	errorConsumerGroup := errorConsumerGroups[errorGroupID]
+
 	errorConsumerGroup.WaitConsumerStart()
 
 	// Then
 	assert.Equal(t, true, errorConsumerGroup.IsRunning())
+
 	errorConsumerGroup.WaitConsumerStop()
 	assert.Equal(t, false, errorConsumerGroup.IsRunning())
 }
@@ -101,10 +101,10 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenMessageIsNew(t *testing.T) {
 			Version: "2.2.0",
 			ErrorConfig: &partitionscaler.ErrorConfig{
 				GroupID:                           errorGroupID,
-				Cron:                              everyTwentySeconds,
+				Cron:                              everyFifteenSeconds,
 				MaxErrorCount:                     1,
 				MaxProcessingTime:                 1 * time.Second,
-				CloseConsumerWhenThereIsNoMessage: 1 * time.Minute,
+				CloseConsumerWhenThereIsNoMessage: 2 * time.Minute,
 				CloseConsumerWhenMessageIsNew:     closeConsumerWhenMessageIsNew,
 			},
 			ClientID: "client-id",
@@ -157,8 +157,6 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenMessageIsNew(t *testing.T) {
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := consumerGroups[groupID]
-	errorConsumerGroup := errorConsumerGroups[errorGroupID]
 
 	// Clean up the container after
 	defer func() {
@@ -167,13 +165,13 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenMessageIsNew(t *testing.T) {
 		}
 	}()
 
+	consumerGroup := consumerGroups[groupID]
+	_ = consumerGroup.Subscribe()
+
+	errorConsumerGroup := errorConsumerGroups[errorGroupID]
+
 	consumerGroup.WaitConsumerStart()
 	errorConsumerGroup.WaitConsumerStart()
-
-	time.Sleep(2 * time.Second)
-
-	// Then
-	assert.Equal(t, true, errorConsumerGroup.IsRunning())
 
 	if err := producers.ProduceSyncBulk(ctx, []partitionscaler.Message{
 		&testdata.TestWrongTypeProducerMessage{Id: "100", Name: "Test Message 1"},
@@ -182,18 +180,18 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenMessageIsNew(t *testing.T) {
 		assert.NilError(t, err)
 	} // wrong message type
 
-	time.Sleep(2 * time.Second)
+	// Then
 
 	errorConsumerGroup.WaitConsumerStop()
-
 	assert.Equal(t, false, errorConsumerGroup.IsRunning())
+
+	consumerGroup.Unsubscribe()
+	consumerGroup.WaitConsumerStop()
 }
 
 func Test_ErrorConsumer_ShouldCloseConsumerWhenUnsubscribe(t *testing.T) {
 	// Given
 	ctx := context.Background()
-
-	errorConsumerCron := "@every 15s"
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
@@ -201,7 +199,7 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenUnsubscribe(t *testing.T) {
 			Version: "2.2.0",
 			ErrorConfig: &partitionscaler.ErrorConfig{
 				GroupID:                           errorGroupID,
-				Cron:                              errorConsumerCron,
+				Cron:                              everyFifteenSeconds,
 				MaxErrorCount:                     1,
 				MaxProcessingTime:                 1 * time.Second,
 				CloseConsumerWhenThereIsNoMessage: 1 * time.Minute,
@@ -215,8 +213,8 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenUnsubscribe(t *testing.T) {
 		topicConfigName: {
 			GroupID:               groupID,
 			Name:                  topic,
-			Retry:                 "message.topic.RETRY.0",
-			Error:                 "message.topic.ERROR.0",
+			Retry:                 retryTopic,
+			Error:                 errorTopic,
 			RetryCount:            1,
 			VirtualPartitionCount: 1,
 			MaxProcessingTime:     1 * time.Second,
@@ -258,8 +256,6 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenUnsubscribe(t *testing.T) {
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := consumerGroups[groupID]
-	errorConsumerGroup := errorConsumerGroups[errorGroupID]
 
 	// Clean up the container after
 	defer func() {
@@ -268,12 +264,21 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenUnsubscribe(t *testing.T) {
 		}
 	}()
 
+	consumerGroup := consumerGroups[groupID]
+	_ = consumerGroup.Subscribe()
+
+	errorConsumerGroup := errorConsumerGroups[errorGroupID]
+
 	consumerGroup.WaitConsumerStart()
 	errorConsumerGroup.WaitConsumerStart()
 
 	// Then
 	assert.Equal(t, true, errorConsumerGroup.IsRunning())
+
+	consumerGroup.Unsubscribe()
 	errorConsumerGroup.Unsubscribe()
+
+	consumerGroup.WaitConsumerStop()
 	errorConsumerGroup.WaitConsumerStop()
 	assert.Equal(t, false, errorConsumerGroup.IsRunning())
 }

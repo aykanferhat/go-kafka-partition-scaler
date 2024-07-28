@@ -56,7 +56,7 @@ func (c *consumerGroup) Handle() handler.MessageHandler {
 	tracerName := c.initializedContext.ConsumerGroupConfig.Tracer
 	consumer := c.initializedContext.Consumers.Consumer
 	return func(topic string, partition int32, messageChan <-chan *message.ConsumerMessage, commitFunc handler.CommitMessageFunc) {
-		c.consumerGroupStatusListener.Listen(&ConsumerGroupStatus{Topic: topic, Partition: partition, Status: StartedListening, Time: time.Now()})
+		c.consumerGroupStatusListener.Listen(&ConsumerGroupStatus{Topic: topic, Partition: partition, Status: StartedListening, Time: time.Now(), Offset: -1})
 		for msg := range messageChan {
 			c.consumerGroupStatusListener.Listen(&ConsumerGroupStatus{Topic: topic, Partition: partition, Status: ListenedMessage, Time: time.Now(), Offset: msg.Offset})
 			consumerMessage := &ConsumerMessage{ConsumerMessage: msg, VirtualPartition: 0, GroupID: c.initializedContext.ConsumerGroupConfig.GroupID, Tracer: tracerName}
@@ -82,7 +82,7 @@ func (c *consumerGroup) HandleVirtual() handler.MessageHandler {
 			messageVirtualListeners.Store(virtualPartition, messageVirtualListener)
 		}
 		c.processedMessageListeners.Store(getKey(topic, partition), processedMessageListener)
-		c.consumerGroupStatusListener.Listen(&ConsumerGroupStatus{Topic: topic, Partition: partition, Status: StartedListening, Time: time.Now()})
+		c.consumerGroupStatusListener.Listen(&ConsumerGroupStatus{Topic: topic, Partition: partition, Status: StartedListening, Time: time.Now(), Offset: -1})
 		var firstConsumedMessage bool
 		for msg := range messageChan {
 			if !firstConsumedMessage {
@@ -129,6 +129,7 @@ func (c *consumerGroup) Subscribe() error {
 	}
 	c.consumerGroupStatusListener.listenConsumerStart()
 	c.cg = cg
+	log.Infof("consumerGroup Subscribed, groupId: %s", c.GetGroupID())
 	return nil
 }
 
@@ -140,6 +141,7 @@ func (c *consumerGroup) Unsubscribe() {
 		log.Errorf("consumerGroup Unsubscribe err: %s", err.Error())
 	}
 	c.consumerGroupStatusListener.listenConsumerStop()
+	log.Infof("consumerGroup Unsubscribed, groupId: %s", c.GetGroupID())
 }
 
 func (c *consumerGroup) GetLastCommittedOffset(topic string, partition int32) int64 {

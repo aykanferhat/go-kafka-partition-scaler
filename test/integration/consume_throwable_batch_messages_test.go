@@ -18,7 +18,6 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessages(t *testing.T) {
 	maxRetryCount := 3
 	batchSize := 3
 	closeConsumerWhenMessageIsNew := time.Millisecond
-	consumeBatchListenerLatency := time.Second
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
@@ -38,16 +37,15 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessages(t *testing.T) {
 
 	consumerConfigs := map[string]*partitionscaler.ConsumerGroupConfig{
 		topicConfigName: {
-			GroupID:                     groupID,
-			Name:                        topic,
-			Retry:                       retryTopic,
-			Error:                       errorTopic,
-			BatchSize:                   batchSize,
-			RetryCount:                  maxRetryCount,
-			VirtualPartitionCount:       2,
-			MaxProcessingTime:           1 * time.Second,
-			Cluster:                     clusterName,
-			ConsumeBatchListenerLatency: consumeBatchListenerLatency,
+			GroupID:               groupID,
+			Name:                  topic,
+			Retry:                 retryTopic,
+			Error:                 errorTopic,
+			BatchSize:             batchSize,
+			RetryCount:            maxRetryCount,
+			VirtualPartitionCount: 2,
+			MaxProcessingTime:     1 * time.Second,
+			Cluster:               clusterName,
 		},
 	}
 
@@ -86,7 +84,6 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessages(t *testing.T) {
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -94,17 +91,19 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessages(t *testing.T) {
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
+	errorConsumerGroup := errorConsumers[errorGroupID]
+
+	consumerGroup.WaitConsumerStart()
+	errorConsumerGroup.WaitConsumerStart()
+
 	produceMessages := []partitionscaler.Message{
 		&testdata.TestWrongTypeProducerMessage{Id: "111111", Reason: "nameChanged", Version: 0}, // wrong format
 		&testdata.TestProducerMessage{Id: 222223, Reason: "nameChanged", Version: 0},
 		&testdata.TestProducerMessage{Id: 333335, Reason: "nameChanged", Version: 0},
 	}
 
-	consumerGroup.WaitConsumerStart()
-
-	for _, consumerGroup := range errorConsumers {
-		consumerGroup.WaitConsumerStart()
-	}
 	if err := producers.ProduceSyncBulk(ctx, produceMessages, 100); err != nil {
 		assert.NilError(t, err)
 	}
@@ -124,21 +123,31 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessages(t *testing.T) {
 		assert.Equal(t, consumedErrorMessage.VirtualPartition, 0)
 		assert.Equal(t, consumedErrorMessage.Offset, int64(0))
 
+		consumerGroup.Unsubscribe()
+		errorConsumerGroup.Unsubscribe()
+
+		consumerGroup.WaitConsumerStop()
+		errorConsumerGroup.WaitConsumerStop()
+
 		close(consumedMessageCh)
 		close(consumedErrorMessageCh)
 	}(consumedMessagesChan, consumedErrorMessageChan)
 
 	consumedMessages := make([]*partitionscaler.ConsumerMessage, 0)
+	consumedRetriedMessages := make([]*partitionscaler.ConsumerMessage, 0)
 	for cms := range consumedMessagesChan {
 		for _, consumedMessage := range cms {
 			if consumedMessage.Topic == retryTopic {
+				consumedRetriedMessages = append(consumedRetriedMessages, consumedMessage)
 				continue
 			}
 			consumedMessages = append(consumedMessages, consumedMessage)
 		}
 	}
 
+	assert.Equal(t, false, errorConsumerGroup.IsRunning())
 	assert.Equal(t, 3, len(consumedMessages))
+	assert.Equal(t, 3, len(consumedRetriedMessages))
 	assert.Equal(t, maxRetryCount, len(consumedMessages))
 }
 
@@ -148,36 +157,25 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenErrorTopicNotFound(t *
 
 	maxRetryCount := 3
 	batchSize := 3
-	closeConsumerWhenMessageIsNew := time.Millisecond
-	consumeBatchListenerLatency := time.Second
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
-			Brokers: "", // dynamic
-			Version: "2.2.0",
-			ErrorConfig: &partitionscaler.ErrorConfig{
-				GroupID:                           errorGroupID,
-				Cron:                              everyFifteenSeconds,
-				MaxErrorCount:                     3,
-				MaxProcessingTime:                 10 * time.Second,
-				CloseConsumerWhenThereIsNoMessage: 1 * time.Minute,
-				CloseConsumerWhenMessageIsNew:     closeConsumerWhenMessageIsNew,
-			},
+			Brokers:  "", // dynamic
+			Version:  "2.2.0",
 			ClientID: "client-id",
 		},
 	}
 
 	consumerConfigs := map[string]*partitionscaler.ConsumerGroupConfig{
 		topicConfigName: {
-			GroupID:                     groupID,
-			Name:                        topic,
-			Retry:                       retryTopic,
-			BatchSize:                   batchSize,
-			RetryCount:                  maxRetryCount,
-			VirtualPartitionCount:       1,
-			MaxProcessingTime:           1 * time.Second,
-			Cluster:                     clusterName,
-			ConsumeBatchListenerLatency: consumeBatchListenerLatency,
+			GroupID:               groupID,
+			Name:                  topic,
+			Retry:                 retryTopic,
+			BatchSize:             batchSize,
+			RetryCount:            maxRetryCount,
+			VirtualPartitionCount: 1,
+			MaxProcessingTime:     1 * time.Second,
+			Cluster:               clusterName,
 		},
 	}
 
@@ -203,7 +201,7 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenErrorTopicNotFound(t *
 	consumedErrorMessageChan := make(chan *partitionscaler.ConsumerMessage, 1)
 
 	// When
-	kafkaContainer, producers, consumers, _ := InitializeTestCluster(
+	kafkaContainer, producers, consumers, errorConsumers := InitializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -218,7 +216,6 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenErrorTopicNotFound(t *
 		},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -226,21 +223,23 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenErrorTopicNotFound(t *
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
+	consumerGroup.WaitConsumerStart()
+
 	produceMessages := []partitionscaler.Message{
 		&testdata.TestWrongTypeProducerMessage{Id: "111111", Reason: "nameChanged", Version: 0}, // wrong format
 		&testdata.TestProducerMessage{Id: 222223, Reason: "nameChanged", Version: 0},
 		&testdata.TestProducerMessage{Id: 333335, Reason: "nameChanged", Version: 0},
 	}
 
-	consumerGroup.WaitConsumerStart()
-
 	if err := producers.ProduceSyncBulk(ctx, produceMessages, 100); err != nil {
 		assert.NilError(t, err)
 	}
 
 	// Then
-	go func(consumedMessageCh chan []*partitionscaler.ConsumerMessage, consumedErrorMessageCh chan *partitionscaler.ConsumerMessage) {
-		consumedErrorMessage := <-consumedErrorMessageCh
+	go func() {
+		consumedErrorMessage := <-consumedErrorMessageChan
 		var errMessage testdata.TestWrongTypeProducerMessage
 		if err := json.Unmarshal(consumedErrorMessage.Value, &errMessage); err != nil {
 			assert.NilError(t, err)
@@ -253,24 +252,28 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenErrorTopicNotFound(t *
 		assert.Equal(t, 0, consumedErrorMessage.VirtualPartition)
 		assert.Equal(t, int64(2), consumedErrorMessage.Offset)
 
-		time.Sleep(2 * time.Second)
+		consumerGroup.Unsubscribe()
+		consumerGroup.WaitConsumerStop()
 
-		close(consumedMessageCh)
-		close(consumedErrorMessageCh)
-	}(consumedMessagesChan, consumedErrorMessageChan)
+		close(consumedMessagesChan)
+		close(consumedErrorMessageChan)
+	}()
 
 	consumedMessages := make([]*partitionscaler.ConsumerMessage, 0)
+	consumedRetriedMessages := make([]*partitionscaler.ConsumerMessage, 0)
 	for cms := range consumedMessagesChan {
 		for _, consumedMessage := range cms {
 			if consumedMessage.Topic == retryTopic {
+				consumedRetriedMessages = append(consumedRetriedMessages, consumedMessage)
 				continue
 			}
 			consumedMessages = append(consumedMessages, consumedMessage)
 		}
 	}
 
-	assert.Equal(t, 3, len(consumedMessages))
-	assert.Equal(t, maxRetryCount, len(consumedMessages))
+	assert.Equal(t, 0, len(errorConsumers))
+	assert.Equal(t, maxRetryCount, len(consumedRetriedMessages))
+	assert.Equal(t, len(produceMessages), len(consumedMessages))
 }
 
 func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryTopicNotFound(t *testing.T) {
@@ -279,7 +282,6 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryTopicNotFound(t *
 
 	batchSize := 3
 	closeConsumerWhenMessageIsNew := time.Millisecond
-	consumeBatchListenerLatency := time.Second
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
@@ -290,7 +292,7 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryTopicNotFound(t *
 				Cron:                              everyFifteenSeconds,
 				MaxErrorCount:                     3,
 				MaxProcessingTime:                 10 * time.Second,
-				CloseConsumerWhenThereIsNoMessage: 1 * time.Minute,
+				CloseConsumerWhenThereIsNoMessage: 2 * time.Minute,
 				CloseConsumerWhenMessageIsNew:     closeConsumerWhenMessageIsNew,
 			},
 			ClientID: "client-id",
@@ -299,14 +301,13 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryTopicNotFound(t *
 
 	consumerConfigs := map[string]*partitionscaler.ConsumerGroupConfig{
 		topicConfigName: {
-			GroupID:                     groupID,
-			Name:                        topic,
-			Error:                       errorTopic,
-			BatchSize:                   batchSize,
-			VirtualPartitionCount:       1,
-			MaxProcessingTime:           1 * time.Second,
-			Cluster:                     clusterName,
-			ConsumeBatchListenerLatency: consumeBatchListenerLatency,
+			GroupID:               groupID,
+			Name:                  topic,
+			Error:                 errorTopic,
+			BatchSize:             batchSize,
+			VirtualPartitionCount: 1,
+			MaxProcessingTime:     1 * time.Second,
+			Cluster:               clusterName,
 		},
 	}
 
@@ -345,7 +346,6 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryTopicNotFound(t *
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -353,24 +353,27 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryTopicNotFound(t *
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+	errorConsumerGroup := errorConsumers[errorGroupID]
+
+	_ = consumerGroup.Subscribe()
+
+	consumerGroup.WaitConsumerStart()
+	errorConsumerGroup.WaitConsumerStart()
+
 	produceMessages := []partitionscaler.Message{
 		&testdata.TestWrongTypeProducerMessage{Id: "111111", Reason: "nameChanged", Version: 0}, // wrong format
 		&testdata.TestProducerMessage{Id: 222223, Reason: "nameChanged", Version: 0},
 		&testdata.TestProducerMessage{Id: 333335, Reason: "nameChanged", Version: 0},
 	}
 
-	consumerGroup.WaitConsumerStart()
-
-	for _, consumerGroup := range errorConsumers {
-		consumerGroup.WaitConsumerStart()
-	}
 	if err := producers.ProduceSyncBulk(ctx, produceMessages, 100); err != nil {
 		assert.NilError(t, err)
 	}
 
 	// Then
-	go func(consumedMessageCh chan []*partitionscaler.ConsumerMessage, consumedErrorMessageCh chan *partitionscaler.ConsumerMessage) {
-		consumedErrorMessage := <-consumedErrorMessageCh
+	go func() {
+		consumedErrorMessage := <-consumedErrorMessageChan
 		var errMessage testdata.TestWrongTypeProducerMessage
 		if err := json.Unmarshal(consumedErrorMessage.Value, &errMessage); err != nil {
 			assert.NilError(t, err)
@@ -383,17 +386,22 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryTopicNotFound(t *
 		assert.Equal(t, consumedErrorMessage.VirtualPartition, 0)
 		assert.Equal(t, consumedErrorMessage.Offset, int64(0))
 
-		time.Sleep(2 * time.Second)
+		consumerGroup.Unsubscribe()
+		errorConsumerGroup.Unsubscribe()
 
-		close(consumedMessageCh)
-		close(consumedErrorMessageCh)
-	}(consumedMessagesChan, consumedErrorMessageChan)
+		consumerGroup.WaitConsumerStop()
+		errorConsumerGroup.WaitConsumerStop()
+
+		close(consumedMessagesChan)
+		close(consumedErrorMessageChan)
+	}()
 
 	consumedMessages := make([]*partitionscaler.ConsumerMessage, 0)
 	for cms := range consumedMessagesChan {
 		consumedMessages = append(consumedMessages, cms...)
 	}
 
+	assert.Equal(t, false, errorConsumerGroup.IsRunning())
 	assert.Equal(t, 3, len(consumedMessages))
 }
 
@@ -402,21 +410,12 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryAndErrorTopicNotF
 	ctx := context.Background()
 
 	batchSize := 3
-	closeConsumerWhenMessageIsNew := time.Millisecond
 	consumeBatchListenerLatency := time.Second
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
-			Brokers: "", // dynamic
-			Version: "2.2.0",
-			ErrorConfig: &partitionscaler.ErrorConfig{
-				GroupID:                           errorGroupID,
-				Cron:                              everyFifteenSeconds,
-				MaxErrorCount:                     3,
-				MaxProcessingTime:                 10 * time.Second,
-				CloseConsumerWhenThereIsNoMessage: 1 * time.Minute,
-				CloseConsumerWhenMessageIsNew:     closeConsumerWhenMessageIsNew,
-			},
+			Brokers:  "", // dynamic
+			Version:  "2.2.0",
 			ClientID: "client-id",
 		},
 	}
@@ -470,7 +469,6 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryAndErrorTopicNotF
 		},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -478,13 +476,16 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryAndErrorTopicNotF
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+
+	_ = consumerGroup.Subscribe()
+	consumerGroup.WaitConsumerStart()
+
 	produceMessages := []partitionscaler.Message{
 		&testdata.TestWrongTypeProducerMessage{Id: "111111", Reason: "nameChanged", Version: 0}, // wrong format
 		&testdata.TestProducerMessage{Id: 222223, Reason: "nameChanged", Version: 0},
 		&testdata.TestProducerMessage{Id: 333335, Reason: "nameChanged", Version: 0},
 	}
-
-	consumerGroup.WaitConsumerStart()
 
 	if err := producers.ProduceSyncBulk(ctx, produceMessages, 100); err != nil {
 		assert.NilError(t, err)
@@ -505,7 +506,8 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryAndErrorTopicNotF
 		assert.Equal(t, consumedErrorMessage.VirtualPartition, 0)
 		assert.Equal(t, consumedErrorMessage.Offset, int64(0))
 
-		time.Sleep(2 * time.Second)
+		consumerGroup.Unsubscribe()
+		consumerGroup.WaitConsumerStop()
 
 		close(consumedMessageCh)
 		close(consumedLastStepErrorMessageCh)

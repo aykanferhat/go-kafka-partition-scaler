@@ -14,10 +14,8 @@ func Test_UniqueConsumer_ShouldConsumeMessage(t *testing.T) {
 	// Given
 	ctx := context.Background()
 
-	var partition int32
 	virtualPartitionCount := 3
 	batchSize := 10
-	consumeBatchListenerLatency := 1 * time.Second
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
@@ -37,17 +35,16 @@ func Test_UniqueConsumer_ShouldConsumeMessage(t *testing.T) {
 
 	consumerConfigs := map[string]*partitionscaler.ConsumerGroupConfig{
 		topicConfigName: {
-			GroupID:                     groupID,
-			Name:                        topic,
-			Retry:                       "message.topic.RETRY.0",
-			Error:                       "message.topic.ERROR.0",
-			RetryCount:                  3,
-			BatchSize:                   batchSize,
-			UniqueListener:              true,
-			VirtualPartitionCount:       virtualPartitionCount,
-			ConsumeBatchListenerLatency: consumeBatchListenerLatency,
-			MaxProcessingTime:           1 * time.Second,
-			Cluster:                     clusterName,
+			GroupID:               groupID,
+			Name:                  topic,
+			Retry:                 retryTopic,
+			Error:                 errorTopic,
+			RetryCount:            3,
+			BatchSize:             batchSize,
+			UniqueListener:        true,
+			VirtualPartitionCount: virtualPartitionCount,
+			MaxProcessingTime:     1 * time.Second,
+			Cluster:               clusterName,
 		},
 	}
 
@@ -82,7 +79,6 @@ func Test_UniqueConsumer_ShouldConsumeMessage(t *testing.T) {
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -90,6 +86,8 @@ func Test_UniqueConsumer_ShouldConsumeMessage(t *testing.T) {
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	produceMessages := []partitionscaler.Message{
@@ -125,9 +123,13 @@ func Test_UniqueConsumer_ShouldConsumeMessage(t *testing.T) {
 	go func() {
 		for {
 			if consumerGroup.GetLastCommittedOffset(topic, partition) != int64(len(produceMessages)-1) {
-				time.Sleep(1 * time.Second)
+				time.Sleep(100 * time.Millisecond)
 				continue
 			}
+
+			consumerGroup.Unsubscribe()
+			consumerGroup.WaitConsumerStop()
+
 			close(consumedMessageChan)
 			break
 		}
@@ -141,11 +143,6 @@ func Test_UniqueConsumer_ShouldConsumeMessage(t *testing.T) {
 		}
 		virtualPartitionConsumerMessageMap[consumedMessage.VirtualPartition] = append(virtualPartitionConsumerMessageMap[consumedMessage.VirtualPartition], consumedMessage)
 	}
-
-	for _, consumerGroup := range consumers {
-		consumerGroup.Unsubscribe()
-	}
-	consumerGroup.WaitConsumerStop()
 
 	assert.Equal(t, len(consumedMessages), 3)
 	assert.Equal(t, len(virtualPartitionConsumerMessageMap[0]), 1)

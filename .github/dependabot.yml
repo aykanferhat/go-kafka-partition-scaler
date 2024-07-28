@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore: bump"
+    allow:
+      - dependency-name: github.com/IBM/sarama
+      - dependency-name: github.com/mhmtszr/concurrent-swiss-map
+      - dependency-name: github.com/json-iterator/go
+      - dependency-name: github.com/spf13/viper

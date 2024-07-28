@@ -36,8 +36,8 @@ func Test_Consumer_ShouldConsumeMessage(t *testing.T) {
 		topicConfigName: {
 			GroupID:           groupID,
 			Name:              topic,
-			Retry:             "message.topic.RETRY.0",
-			Error:             "message.topic.ERROR.0",
+			Retry:             retryTopic,
+			Error:             errorTopic,
 			RetryCount:        3,
 			MaxProcessingTime: 1 * time.Second,
 			Cluster:           clusterName,
@@ -75,7 +75,6 @@ func Test_Consumer_ShouldConsumeMessage(t *testing.T) {
 		func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error) {},
 		totalPartition,
 	)
-	consumerGroup := consumers[groupID]
 
 	defer func() {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
@@ -83,6 +82,8 @@ func Test_Consumer_ShouldConsumeMessage(t *testing.T) {
 		}
 	}()
 
+	consumerGroup := consumers[groupID]
+	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	produceMessages := []partitionscaler.Message{
@@ -112,6 +113,9 @@ func Test_Consumer_ShouldConsumeMessage(t *testing.T) {
 			if len(consumedMessages) != len(produceMessages) {
 				continue
 			}
+
+			consumerGroup.Unsubscribe()
+			consumerGroup.WaitConsumerStop()
 			close(consumedMessageChan)
 			break
 		}
@@ -120,12 +124,6 @@ func Test_Consumer_ShouldConsumeMessage(t *testing.T) {
 	for consumedMessage := range consumedMessageChan {
 		consumedMessages = append(consumedMessages, consumedMessage)
 	}
-
-	for _, consumerGroup := range consumers {
-		consumerGroup.Unsubscribe()
-	}
-
-	consumerGroup.WaitConsumerStop()
 
 	assert.Equal(t, len(consumedMessages), len(produceMessages))
 }

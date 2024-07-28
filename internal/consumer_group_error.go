@@ -59,7 +59,7 @@ func NewErrorConsumerGroup(
 func (c *errorConsumerGroup) Handle() kafka.MessageHandler {
 	return func(topic string, partition int32, messageChan <-chan *kafka.ConsumerMessage, commitFunc kafka.CommitMessageFunc) {
 		consumer := c.errorTopicConsumerMap[topic]
-		c.consumerGroupStatusListener.Listen(&ConsumerGroupStatus{Topic: topic, Partition: partition, Status: StartedListening, Time: time.Now()})
+		c.consumerGroupStatusListener.Listen(&ConsumerGroupStatus{Topic: topic, Partition: partition, Status: StartedListening, Time: time.Now(), Offset: -1})
 		for msg := range messageChan {
 			if time.Since(msg.Timestamp).Nanoseconds() < c.errorConsumerConfig.CloseConsumerWhenMessageIsNew.Nanoseconds() {
 				c.consumerGroupStatusListener.Listen(&ConsumerGroupStatus{Topic: topic, Partition: partition, Status: ErrorConsumerOccurredViolation, Time: time.Now(), Offset: msg.Offset})
@@ -102,10 +102,8 @@ func (c *errorConsumerGroup) Subscribe() {
 		return
 	}
 	if c.subscribed {
-		log.Infof("errorConsumerGroup is already subscribed, groupId: %s", c.errorConsumerConfig.GroupID)
 		return
 	}
-	log.Infof("errorConsumerGroup Subscribe, groupId: %s", c.errorConsumerConfig.GroupID)
 	c.consumerGroupStatusListener.listenConsumerStart()
 	cg, err := kafka.NewConsumerGroup(
 		mapToClusterConfig(c.clusterConfig),
@@ -123,13 +121,13 @@ func (c *errorConsumerGroup) Subscribe() {
 	}
 	c.cg = cg
 	c.subscribed = true
+	log.Infof("errorConsumerGroup Subscribed, groupId: %s", c.errorConsumerConfig.GroupID)
 }
 
 func (c *errorConsumerGroup) Unsubscribe() {
 	if !c.existsErrorTopic() || c.cg == nil {
 		return
 	}
-	log.Infof("errorConsumerGroup Unsubscribe, groupId: %s", c.errorConsumerConfig.GroupID)
 	if err := c.cg.Unsubscribe(); err != nil {
 		log.Errorf("errorConsumerGroup Unsubscribe err: %s", err.Error())
 		return
@@ -137,6 +135,7 @@ func (c *errorConsumerGroup) Unsubscribe() {
 	c.consumerGroupStatusListener.listenConsumerStop()
 	c.cg = nil
 	c.subscribed = false
+	log.Infof("errorConsumerGroup Unsubscribed, groupId: %s", c.errorConsumerConfig.GroupID)
 }
 
 func (c *errorConsumerGroup) IsRunning() bool {
