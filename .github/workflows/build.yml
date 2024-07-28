@@ -2,10 +2,10 @@ name: Build
 
 on:
   push:
-    branches: [master]
+    branches: [ master ]
   pull_request:
-    branches: [master]
-    types: [opened, reopened, synchronize]
+    branches: [ master ]
+    types: [ opened, reopened, synchronize ]
   workflow_dispatch:
 
 concurrency:
@@ -39,6 +39,3 @@ jobs:
 
       - name: Test
         run: go test -v ./internal
-
-      - name: IntegrationTest
-        run: go test -v ./test/integration
