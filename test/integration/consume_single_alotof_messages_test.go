@@ -3,6 +3,7 @@ package integration
 import (
 	"context"
 	"crypto/rand"
+	"github.com/IBM/sarama"
 	"math/big"
 	"testing"
 	"time"
@@ -23,7 +24,7 @@ func Test_SingleConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
 			Brokers: "", // dynamic
-			Version: "2.2.0",
+			Version: sarama.V3_6_0_0.String(),
 			ErrorConfig: &partitionscaler.ErrorConfig{
 				GroupID:                           errorGroupID,
 				Cron:                              "0 */5 * * *",

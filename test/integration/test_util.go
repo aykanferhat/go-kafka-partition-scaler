@@ -175,10 +175,10 @@ func initializeTestCluster(
 		if err := createTopic(clusterConfig, consumerGroupConfig.Name, partition); err != nil {
 			assert.NilError(t, err)
 		}
-		if err := createTopic(clusterConfig, consumerGroupConfig.Retry, 2); err != nil {
+		if err := createTopic(clusterConfig, consumerGroupConfig.Retry, 1); err != nil {
 			assert.NilError(t, err)
 		}
-		if err := createTopic(clusterConfig, consumerGroupConfig.Error, 2); err != nil {
+		if err := createTopic(clusterConfig, consumerGroupConfig.Error, 1); err != nil {
 			assert.NilError(t, err)
 		}
 	}
@@ -236,7 +236,7 @@ func initializeErrorConsumerTestCluster(
 			assert.NilError(t, err)
 		}
 		for _, topic := range consumerGroupConfig.Topics {
-			if err := createTopic(clusterConfig, topic, 2); err != nil {
+			if err := createTopic(clusterConfig, topic, 1); err != nil {
 				assert.NilError(t, err)
 			}
 		}

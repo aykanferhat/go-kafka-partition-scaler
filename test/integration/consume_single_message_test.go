@@ -2,6 +2,7 @@ package integration
 
 import (
 	"context"
+	"github.com/IBM/sarama"
 	"testing"
 	"time"
 
@@ -20,7 +21,7 @@ func Test_SingleConsumer_ShouldConsumeMessage(t *testing.T) {
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
 			Brokers: "", // dynamic
-			Version: "2.2.0",
+			Version: sarama.V3_6_0_0.String(),
 			ErrorConfig: &partitionscaler.ErrorConfig{
 				GroupID:                           errorGroupID,
 				Cron:                              "0 */5 * * *",

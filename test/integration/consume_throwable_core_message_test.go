@@ -2,6 +2,7 @@ package integration
 
 import (
 	"context"
+	"github.com/IBM/sarama"
 	"testing"
 	"time"
 
@@ -21,7 +22,7 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessage(t *testing.T) {
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
 			Brokers: "", // dynamic
-			Version: "2.2.0",
+			Version: sarama.V3_6_0_0.String(),
 			ErrorConfig: &partitionscaler.ErrorConfig{
 				GroupID:                           errorGroupID,
 				Cron:                              everyTenSeconds,
@@ -262,7 +263,7 @@ func Test_CoreConsumer_ShouldConsumeThrowableMessageWhenRetryTopicNotFound(t *te
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
 			Brokers: "", // dynamic
-			Version: "2.2.0",
+			Version: sarama.V3_6_0_0.String(),
 			ErrorConfig: &partitionscaler.ErrorConfig{
 				GroupID:                           errorGroupID,
 				Cron:                              everyFifteenSeconds,
