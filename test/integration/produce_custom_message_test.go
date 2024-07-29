@@ -15,7 +15,7 @@ import (
 
 func Test_Producer_ShouldProduceCustomMessage(t *testing.T) {
 	// Given
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
@@ -40,15 +40,15 @@ func Test_Producer_ShouldProduceCustomMessage(t *testing.T) {
 	consumedMessageChan := make(chan *partitionscaler.ConsumerMessage)
 
 	consumersList := []*partitionscaler.ConsumerGroupConsumers{
-		{Consumer: NewTestMessageConsumer(consumedMessageChan), ConfigName: topicConfigName},
+		{Consumer: newTestMessageConsumer(consumedMessageChan), ConfigName: topicConfigName},
 	}
 
-	consumerInterceptor := NewTestConsumerHeaderInterceptor()
-	consumerErrorInterceptor := NewTestConsumerErrorInterceptor()
-	producerInterceptor := NewTestProducerInterceptor()
+	consumerInterceptor := newTestConsumerHeaderInterceptor()
+	consumerErrorInterceptor := newTestConsumerErrorInterceptor()
+	producerInterceptor := newTestProducerInterceptor()
 
 	// When
-	kafkaContainer, producers, consumers, _ := InitializeTestCluster(
+	kafkaContainer, producers, consumers, _ := initializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -66,10 +66,10 @@ func Test_Producer_ShouldProduceCustomMessage(t *testing.T) {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
 			assert.NilError(t, err)
 		}
+		cancel()
 	}()
 
 	consumerGroup := consumers[groupID]
-	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	err := producers.ProduceCustomSync(ctx, &partitionscaler.CustomMessage{

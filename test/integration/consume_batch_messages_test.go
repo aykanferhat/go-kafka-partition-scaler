@@ -3,10 +3,8 @@ package integration
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/IBM/sarama"
-
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 
 	"github.com/Trendyol/go-kafka-partition-scaler/test/testdata"
@@ -15,22 +13,14 @@ import (
 
 func Test_BatchConsumer_ShouldConsumeMessages(t *testing.T) {
 	// Given
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	batchSize := 3
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
-			Brokers: "",
-			Version: sarama.V3_6_0_0.String(),
-			ErrorConfig: &partitionscaler.ErrorConfig{
-				GroupID:                           errorGroupID,
-				Cron:                              "0 */5 * * *",
-				MaxErrorCount:                     3,
-				MaxProcessingTime:                 1 * time.Second,
-				CloseConsumerWhenThereIsNoMessage: 1 * time.Minute,
-				CloseConsumerWhenMessageIsNew:     1 * time.Minute,
-			},
+			Brokers:  "",
+			Version:  sarama.V3_6_0_0.String(),
 			ClientID: "client-id",
 		},
 	}
@@ -58,17 +48,17 @@ func Test_BatchConsumer_ShouldConsumeMessages(t *testing.T) {
 	consumedMessagesChan := make(chan []*partitionscaler.ConsumerMessage)
 	consumersList := []*partitionscaler.ConsumerGroupConsumers{
 		{
-			BatchConsumer: NewTestBatchMessageConsumer(consumedMessagesChan),
+			BatchConsumer: newTestBatchMessageConsumer(consumedMessagesChan),
 			ConfigName:    topicConfigName,
 		},
 	}
 
-	consumerInterceptor := NewTestConsumerHeaderInterceptor()
-	consumerErrorInterceptor := NewTestConsumerErrorInterceptor()
-	producerInterceptor := NewTestProducerInterceptor()
+	consumerInterceptor := newTestConsumerHeaderInterceptor()
+	consumerErrorInterceptor := newTestConsumerErrorInterceptor()
+	producerInterceptor := newTestProducerInterceptor()
 
 	// When
-	kafkaContainer, producers, consumers, errorConsumers := InitializeTestCluster(
+	kafkaContainer, producers, consumers, _ := initializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -86,12 +76,11 @@ func Test_BatchConsumer_ShouldConsumeMessages(t *testing.T) {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
 			assert.NilError(t, err)
 		}
+		cancel()
 	}()
 
 	consumerGroup := consumers[groupID]
-	errorConsumerGroup := errorConsumers[errorGroupID]
 
-	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	produceMessages := []partitionscaler.Message{
@@ -122,10 +111,7 @@ func Test_BatchConsumer_ShouldConsumeMessages(t *testing.T) {
 			}
 
 			consumerGroup.Unsubscribe()
-			errorConsumerGroup.Unsubscribe()
-
 			consumerGroup.WaitConsumerStop()
-			errorConsumerGroup.WaitConsumerStop()
 			close(consumedMessagesChan)
 			break
 		}

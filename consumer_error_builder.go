@@ -59,7 +59,7 @@ func (c *ConsumerErrorBuilder) Log(l Log) *ConsumerErrorBuilder {
 	return c
 }
 
-func (c *ConsumerErrorBuilder) Initialize() (map[string]ErrorConsumerGroup, error) {
+func (c *ConsumerErrorBuilder) Initialize(ctx context.Context) (map[string]ErrorConsumerGroup, error) {
 	producers, err := NewProducerBuilder(c.clusterConfigMap).Initialize()
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (c *ConsumerErrorBuilder) Initialize() (map[string]ErrorConsumerGroup, erro
 		if err != nil {
 			return nil, err
 		}
-		if err := consumerGroup.ScheduleToSubscribe(); err != nil {
+		if err := consumerGroup.ScheduleToSubscribe(ctx); err != nil {
 			return nil, err
 		}
 		errorConsumerGroupMap[consumerGroupErrorConfig.GroupID] = consumerGroup

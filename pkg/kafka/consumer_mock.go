@@ -5,6 +5,7 @@
 package kafka
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,17 +35,17 @@ func (m *MockConsumerGroup) EXPECT() *MockConsumerGroupMockRecorder {
 }
 
 // Subscribe mocks base method.
-func (m *MockConsumerGroup) Subscribe() error {
+func (m *MockConsumerGroup) Subscribe(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Subscribe")
+	ret := m.ctrl.Call(m, "Subscribe", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Subscribe indicates an expected call of Subscribe.
-func (mr *MockConsumerGroupMockRecorder) Subscribe() *gomock.Call {
+func (mr *MockConsumerGroupMockRecorder) Subscribe(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscribe", reflect.TypeOf((*MockConsumerGroup)(nil).Subscribe))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscribe", reflect.TypeOf((*MockConsumerGroup)(nil).Subscribe), ctx)
 }
 
 // Unsubscribe mocks base method.

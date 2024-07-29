@@ -10,7 +10,7 @@ import (
 
 type testConsumerHeaderInterceptor struct{}
 
-func NewTestConsumerHeaderInterceptor() partitionscaler.ConsumerInterceptor {
+func newTestConsumerHeaderInterceptor() partitionscaler.ConsumerInterceptor {
 	return &testConsumerHeaderInterceptor{}
 }
 

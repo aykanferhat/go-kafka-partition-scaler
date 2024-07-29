@@ -8,7 +8,6 @@ import (
 	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/sarama"
 )
 
-//go:generate mockgen  -source=producer.go -destination=producer_mock.go -package=kafka
 type Producer interface {
 	ProduceAsync(ctx context.Context, message *message.ProducerMessage) error
 	ProduceSync(ctx context.Context, message *message.ProducerMessage) error

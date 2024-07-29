@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"math/big"
 	"testing"
-	"time"
 
 	"github.com/IBM/sarama"
 
@@ -18,24 +17,14 @@ import (
 
 func Test_SingleConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 	// Given
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
-	defer cancel()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	virtualPartitionCount := 10
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
-			Brokers: "", // dynamic
-			Version: sarama.V3_6_0_0.String(),
-			ErrorConfig: &partitionscaler.ErrorConfig{
-				GroupID:                           errorGroupID,
-				Cron:                              "0 */5 * * *",
-				MaxErrorCount:                     3,
-				MaxProcessingTime:                 1 * time.Second,
-				CloseConsumerWhenThereIsNoMessage: 1 * time.Minute,
-				CloseConsumerWhenMessageIsNew:     1 * time.Minute,
-			},
+			Brokers:  "", // dynamic
+			Version:  sarama.V3_6_0_0.String(),
 			ClientID: "client-id",
 		},
 	}
@@ -62,15 +51,15 @@ func Test_SingleConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 	consumedMessageChan := make(chan *partitionscaler.ConsumerMessage, 10)
 
 	consumersList := []*partitionscaler.ConsumerGroupConsumers{
-		{Consumer: NewTestMessageConsumer(consumedMessageChan), ConfigName: topicConfigName},
+		{Consumer: newTestMessageConsumer(consumedMessageChan), ConfigName: topicConfigName},
 	}
 
-	consumerInterceptor := NewTestConsumerHeaderInterceptor()
-	consumerErrorInterceptor := NewTestConsumerErrorInterceptor()
-	producerInterceptor := NewTestProducerInterceptor()
+	consumerInterceptor := newTestConsumerHeaderInterceptor()
+	consumerErrorInterceptor := newTestConsumerErrorInterceptor()
+	producerInterceptor := newTestProducerInterceptor()
 
 	// When
-	kafkaContainer, producers, consumers, errorConsumers := InitializeTestCluster(
+	kafkaContainer, producers, consumers, _ := initializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -88,12 +77,10 @@ func Test_SingleConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
 			assert.NilError(t, err)
 		}
+		cancel()
 	}()
 
 	consumerGroup := consumers[groupID]
-	errorConsumerGroup := errorConsumers[errorGroupID]
-
-	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	var produceMessages []partitionscaler.Message
@@ -123,11 +110,7 @@ func Test_SingleConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 			}
 
 			consumerGroup.Unsubscribe()
-			errorConsumerGroup.Unsubscribe()
-
 			consumerGroup.WaitConsumerStop()
-			errorConsumerGroup.WaitConsumerStop()
-
 			close(consumedMessageChan)
 			break
 		}

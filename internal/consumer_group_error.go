@@ -13,9 +13,9 @@ import (
 )
 
 type ErrorConsumerGroup interface {
-	ScheduleToSubscribe() error
+	ScheduleToSubscribe(context.Context) error
 	GetGroupID() string
-	Subscribe()
+	Subscribe(context.Context)
 	Unsubscribe()
 	IsRunning() bool
 	WaitConsumerStart()
@@ -88,8 +88,10 @@ func (c *errorConsumerGroup) Handle() kafka.MessageHandler {
 	}
 }
 
-func (c *errorConsumerGroup) ScheduleToSubscribe() error {
-	if err := c.scheduleToSubscribeCron.AddFunc(c.errorConsumerConfig.Cron, c.Subscribe); err != nil {
+func (c *errorConsumerGroup) ScheduleToSubscribe(ctx context.Context) error {
+	if err := c.scheduleToSubscribeCron.AddFunc(c.errorConsumerConfig.Cron, func() {
+		c.Subscribe(ctx)
+	}); err != nil {
 		return err
 	}
 	c.scheduleToSubscribeCron.Start()
@@ -100,14 +102,14 @@ func (c *errorConsumerGroup) GetGroupID() string {
 	return c.errorConsumerConfig.GroupID
 }
 
-func (c *errorConsumerGroup) Subscribe() {
+func (c *errorConsumerGroup) Subscribe(ctx context.Context) {
+	if !c.existsErrorTopic() {
+		return
+	}
 	c.mutex.Lock()
 	defer func() {
 		c.mutex.Unlock()
 	}()
-	if !c.existsErrorTopic() {
-		return
-	}
 	if c.subscribed {
 		return
 	}
@@ -122,7 +124,7 @@ func (c *errorConsumerGroup) Subscribe() {
 		log.Errorf("errorConsumerGroup Subscribe err: %s", err.Error())
 		return
 	}
-	if err := cg.Subscribe(); err != nil {
+	if err := cg.Subscribe(ctx); err != nil {
 		log.Errorf("errorConsumerGroup Subscribe err: %s", err.Error())
 		return
 	}

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"strings"
 	"testing"
-	"time"
 
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 
@@ -33,107 +32,6 @@ const (
 	partition           = int32(0)
 	totalPartition      = int32(1)
 )
-
-func InitializeTestCluster(
-	ctx context.Context,
-	t *testing.T,
-	clusterConfigsMap partitionscaler.ClusterConfigMap,
-	producerTopicMap partitionscaler.ProducerTopicConfigMap,
-	consumerConfigs partitionscaler.ConsumerGroupConfigMap,
-	consumersList []*partitionscaler.ConsumerGroupConsumers,
-	consumerInterceptor partitionscaler.ConsumerInterceptor,
-	consumerErrorInterceptor partitionscaler.ConsumerErrorInterceptor,
-	producerInterceptor partitionscaler.ProducerInterceptor,
-	lastStepFunc func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error),
-	partition int32,
-) (kafkaContainer *containerKafka.KafkaContainer, producers partitionscaler.Producer, consumers map[string]partitionscaler.ConsumerGroup, errorConsumers map[string]partitionscaler.ErrorConsumerGroup) {
-	for {
-		timeoutContext, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
-		startedChan := make(chan bool)
-		kafkaContainer, producers, consumers, errorConsumers = initializeTestCluster(
-			ctx,
-			t,
-			clusterConfigsMap,
-			producerTopicMap,
-			consumerConfigs,
-			consumersList,
-			consumerInterceptor,
-			consumerErrorInterceptor,
-			producerInterceptor,
-			lastStepFunc,
-			partition,
-		)
-		go func() {
-			for _, consumerGroup := range consumers {
-				consumerGroup.WaitConsumerStart()
-			}
-			startedChan <- true
-		}()
-
-		select {
-		case <-startedChan:
-			cancel()
-			for _, consumerGroup := range consumers {
-				consumerGroup.Unsubscribe()
-				consumerGroup.WaitConsumerStop()
-			}
-			return kafkaContainer, producers, consumers, errorConsumers
-		case <-timeoutContext.Done():
-			cancel()
-			_ = kafkaContainer.Terminate(ctx)
-			continue
-		}
-	}
-}
-
-func InitializeErrorConsumerTestCluster(
-	ctx context.Context,
-	t *testing.T,
-	clusterConfigsMap partitionscaler.ClusterConfigMap,
-	producerTopicMap partitionscaler.ProducerTopicConfigMap,
-	consumerConfigs partitionscaler.ConsumerGroupErrorConfigMap,
-	consumerLists []*partitionscaler.ConsumerGroupErrorConsumers,
-	consumerErrorInterceptor partitionscaler.ConsumerErrorInterceptor,
-	producerInterceptor partitionscaler.ProducerInterceptor,
-	lastStepFunc func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error),
-) (kafkaContainer *containerKafka.KafkaContainer, producers partitionscaler.Producer, errorConsumers map[string]partitionscaler.ErrorConsumerGroup) {
-	for {
-		timeoutContext, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
-		startedChan := make(chan bool)
-		kafkaContainer, producers, errorConsumers = initializeErrorConsumerTestCluster(
-			ctx,
-			t,
-			clusterConfigsMap,
-			producerTopicMap,
-			consumerConfigs,
-			consumerLists,
-			consumerErrorInterceptor,
-			producerInterceptor,
-			lastStepFunc,
-		)
-		go func() {
-			for _, errorConsumer := range errorConsumers {
-				errorConsumer.Subscribe()
-				errorConsumer.WaitConsumerStart()
-			}
-			startedChan <- true
-		}()
-
-		select {
-		case <-startedChan:
-			cancel()
-			for _, errorConsumer := range errorConsumers {
-				errorConsumer.Unsubscribe()
-				errorConsumer.WaitConsumerStop()
-			}
-			return kafkaContainer, producers, errorConsumers
-		case <-timeoutContext.Done():
-			cancel()
-			_ = kafkaContainer.Terminate(ctx)
-			continue
-		}
-	}
-}
 
 //nolint:funlen
 func initializeTestCluster(
@@ -193,7 +91,7 @@ func initializeTestCluster(
 		LastStepFunc(lastStepFunc).
 		Interceptor(consumerInterceptor).
 		ErrorInterceptor(consumerErrorInterceptor).
-		Initialize()
+		Initialize(ctx)
 	if err != nil {
 		assert.NilError(t, err)
 	}
@@ -252,7 +150,7 @@ func initializeErrorConsumerTestCluster(
 		Consumers(consumerLists).
 		LastStepFunc(lastStepFunc).
 		ErrorInterceptor(consumerErrorInterceptor).
-		Initialize()
+		Initialize(ctx)
 	if err != nil {
 		assert.NilError(t, err)
 	}

@@ -13,7 +13,7 @@ type testMessageConsumer struct {
 	consumedMessageChan chan *partitionscaler.ConsumerMessage
 }
 
-func NewTestMessageConsumer(consumedMessageChan chan *partitionscaler.ConsumerMessage) partitionscaler.Consumer {
+func newTestMessageConsumer(consumedMessageChan chan *partitionscaler.ConsumerMessage) partitionscaler.Consumer {
 	return &testMessageConsumer{
 		consumedMessageChan: consumedMessageChan,
 	}

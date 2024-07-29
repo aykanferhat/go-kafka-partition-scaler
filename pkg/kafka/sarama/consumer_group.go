@@ -50,7 +50,7 @@ func NewConsumerGroup(
 
 const subscribeErr = "Error from consumerGroup group: %s, err: %s"
 
-func (c *ConsumerGroup) Subscribe() error {
+func (c *ConsumerGroup) Subscribe(ctx context.Context) error {
 	client, err := sarama.NewClient(c.clusterConfig.Brokers, c.saramaConfig)
 	if err != nil {
 		return err
@@ -59,7 +59,6 @@ func (c *ConsumerGroup) Subscribe() error {
 	if err != nil {
 		return err
 	}
-	ctx := context.Background()
 	consumerGroupHandler := NewConsumerGroupHandler(c.messageHandler, c.consumerStatusHandler)
 	go func() {
 		for {
@@ -67,12 +66,16 @@ func (c *ConsumerGroup) Subscribe() error {
 				if errors.Is(err, ErrClosedConsumerGroup) {
 					break
 				}
+				if ctx.Err() != nil {
+					log.Logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, ctx.Err().Error())
+					break
+				}
 				log.Logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, err.Error())
 				continue
 			}
 			if ctx.Err() != nil {
 				log.Logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, ctx.Err().Error())
-				continue
+				break
 			}
 			if c.consumerGroupConfig.IsErrorConsumer { // we don't want to start again when rebalance or else.
 				break

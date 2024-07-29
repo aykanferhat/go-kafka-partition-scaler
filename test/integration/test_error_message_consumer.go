@@ -10,7 +10,7 @@ type testErrorConsumerWithChannel struct {
 	testErrorMessageChan chan *partitionscaler.ConsumerMessage
 }
 
-func NewTestErrorConsumerWithChannel(
+func newTestErrorConsumerWithChannel(
 	testErrorMessageChan chan *partitionscaler.ConsumerMessage,
 ) partitionscaler.Consumer {
 	return &testErrorConsumerWithChannel{
@@ -25,7 +25,7 @@ func (consumer *testErrorConsumerWithChannel) Consume(_ context.Context, message
 
 type testErrorConsumer struct{}
 
-func NewTestErrorConsumer() partitionscaler.Consumer {
+func newTestErrorConsumer() partitionscaler.Consumer {
 	return &testErrorConsumer{}
 }
 

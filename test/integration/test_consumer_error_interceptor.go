@@ -8,7 +8,7 @@ import (
 
 type testConsumerErrorInterceptor struct{}
 
-func NewTestConsumerErrorInterceptor() partitionscaler.ConsumerErrorInterceptor {
+func newTestConsumerErrorInterceptor() partitionscaler.ConsumerErrorInterceptor {
 	return &testConsumerErrorInterceptor{}
 }
 

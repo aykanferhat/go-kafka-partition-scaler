@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+
 	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
 	"github.com/Trendyol/go-kafka-partition-scaler/examples/virtual_batch_message_consumer/consumers"
 	"github.com/Trendyol/go-kafka-partition-scaler/examples/virtual_batch_message_consumer/consumers/interceptors"
@@ -13,6 +15,8 @@ const (
 )
 
 func main() {
+	ctx := context.Background()
+
 	clusterConfigMap, err := partitionscaler.ReadKafkaClusterConfigWithProfile(clusterConfigPath, "stage")
 	if err != nil {
 		panic(err)
@@ -43,7 +47,7 @@ func main() {
 		Interceptor(consumerGenericInterceptor).
 		ErrorInterceptor(consumerGenericErrorInterceptor).
 		Log(logger).
-		Initialize()
+		Initialize(ctx)
 	if err != nil {
 		panic(err)
 	}

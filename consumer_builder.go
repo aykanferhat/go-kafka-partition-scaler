@@ -86,7 +86,7 @@ func (c *ConsumerBuilder) Log(l Log) *ConsumerBuilder {
 	return c
 }
 
-func (c *ConsumerBuilder) Initialize() (map[string]ConsumerGroup, map[string]ErrorConsumerGroup, error) {
+func (c *ConsumerBuilder) Initialize(ctx context.Context) (map[string]ConsumerGroup, map[string]ErrorConsumerGroup, error) {
 	producers, err := NewProducerBuilder(c.clusterConfigMap).Initialize()
 	if err != nil {
 		return nil, nil, err
@@ -117,7 +117,7 @@ func (c *ConsumerBuilder) Initialize() (map[string]ConsumerGroup, map[string]Err
 			ConsumerInterceptors: c.consumerInterceptors,
 		}
 		consumerGroup := internal.NewConsumerGroup(consumerGroupInitializedContext)
-		if err := consumerGroup.Subscribe(); err != nil {
+		if err := consumerGroup.Subscribe(ctx); err != nil {
 			return nil, nil, err
 		}
 		if _, exist := clusterConsumerConfigConsumersMap[clusterName]; !exist {
@@ -176,7 +176,7 @@ func (c *ConsumerBuilder) Initialize() (map[string]ConsumerGroup, map[string]Err
 		if err != nil {
 			return nil, nil, err
 		}
-		if err := errorConsumer.ScheduleToSubscribe(); err != nil {
+		if err := errorConsumer.ScheduleToSubscribe(ctx); err != nil {
 			return nil, nil, err
 		}
 		errorConsumerGroupMap[clusterConfig.ErrorConfig.GroupID] = errorConsumer

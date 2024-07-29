@@ -14,7 +14,7 @@ import (
 
 func Test_ErrorConsumer_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T) {
 	// Given
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	closeConsumerWhenThereIsNoMessage := 5 * time.Second
 
@@ -51,16 +51,16 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T)
 	consumersList := []*partitionscaler.ConsumerGroupConsumers{
 		{
 			ConfigName: topicConfigName,
-			Consumer:   NewTestMessageConsumer(consumedMessageChan),
+			Consumer:   newTestMessageConsumer(consumedMessageChan),
 		},
 	}
 
-	consumerInterceptor := NewTestConsumerHeaderInterceptor()
-	consumerErrorInterceptor := NewTestConsumerErrorInterceptor()
-	producerInterceptor := NewTestProducerInterceptor()
+	consumerInterceptor := newTestConsumerHeaderInterceptor()
+	consumerErrorInterceptor := newTestConsumerErrorInterceptor()
+	producerInterceptor := newTestProducerInterceptor()
 
 	// When
-	kafkaContainer, _, _, errorConsumerGroups := InitializeTestCluster(
+	kafkaContainer, _, _, errorConsumerGroups := initializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -78,6 +78,7 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T)
 		if err := kafkaContainer.Terminate(ctx); err != nil {
 			assert.NilError(t, err)
 		}
+		cancel()
 	}()
 
 	errorConsumerGroup := errorConsumerGroups[errorGroupID]
@@ -93,7 +94,7 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T)
 
 func Test_ErrorConsumer_ShouldCloseConsumerWhenMessageIsNew(t *testing.T) {
 	// Given
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	closeConsumerWhenMessageIsNew := 5 * time.Minute
 
@@ -103,7 +104,7 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenMessageIsNew(t *testing.T) {
 			Version: sarama.V3_6_0_0.String(),
 			ErrorConfig: &partitionscaler.ErrorConfig{
 				GroupID:                           errorGroupID,
-				Cron:                              everyFifteenSeconds,
+				Cron:                              everyThirtySeconds,
 				MaxErrorCount:                     1,
 				MaxProcessingTime:                 1 * time.Second,
 				CloseConsumerWhenThereIsNoMessage: 2 * time.Minute,
@@ -130,7 +131,7 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenMessageIsNew(t *testing.T) {
 	consumersList := []*partitionscaler.ConsumerGroupConsumers{
 		{
 			ConfigName: topicConfigName,
-			Consumer:   NewTestMessageConsumer(consumedMessageChan),
+			Consumer:   newTestMessageConsumer(consumedMessageChan),
 		},
 	}
 
@@ -141,12 +142,12 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenMessageIsNew(t *testing.T) {
 		},
 	}
 
-	consumerInterceptor := NewTestConsumerHeaderInterceptor()
-	consumerErrorInterceptor := NewTestConsumerErrorInterceptor()
-	producerInterceptor := NewTestProducerInterceptor()
+	consumerInterceptor := newTestConsumerHeaderInterceptor()
+	consumerErrorInterceptor := newTestConsumerErrorInterceptor()
+	producerInterceptor := newTestProducerInterceptor()
 
 	// When
-	kafkaContainer, producers, consumerGroups, errorConsumerGroups := InitializeTestCluster(
+	kafkaContainer, producers, consumerGroups, errorConsumerGroups := initializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -165,12 +166,11 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenMessageIsNew(t *testing.T) {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
 			assert.NilError(t, err)
 		}
+		cancel()
 	}()
 
 	consumerGroup := consumerGroups[groupID]
 	errorConsumerGroup := errorConsumerGroups[errorGroupID]
-
-	_ = consumerGroup.Subscribe()
 
 	consumerGroup.WaitConsumerStart()
 	errorConsumerGroup.WaitConsumerStart()
@@ -197,7 +197,7 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenMessageIsNew(t *testing.T) {
 
 func Test_ErrorConsumer_ShouldCloseConsumerWhenUnsubscribe(t *testing.T) {
 	// Given
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
@@ -232,8 +232,8 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenUnsubscribe(t *testing.T) {
 	consumersList := []*partitionscaler.ConsumerGroupConsumers{
 		{
 			ConfigName:    topicConfigName,
-			Consumer:      NewTestMessageConsumer(consumedMessageChan),
-			ErrorConsumer: NewTestErrorConsumer(),
+			Consumer:      newTestMessageConsumer(consumedMessageChan),
+			ErrorConsumer: newTestErrorConsumer(),
 		},
 	}
 
@@ -244,12 +244,12 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenUnsubscribe(t *testing.T) {
 		},
 	}
 
-	consumerInterceptor := NewTestConsumerHeaderInterceptor()
-	consumerErrorInterceptor := NewTestConsumerErrorInterceptor()
-	producerInterceptor := NewTestProducerInterceptor()
+	consumerInterceptor := newTestConsumerHeaderInterceptor()
+	consumerErrorInterceptor := newTestConsumerErrorInterceptor()
+	producerInterceptor := newTestProducerInterceptor()
 
 	// When
-	kafkaContainer, _, consumerGroups, errorConsumerGroups := InitializeTestCluster(
+	kafkaContainer, _, consumerGroups, errorConsumerGroups := initializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -268,12 +268,11 @@ func Test_ErrorConsumer_ShouldCloseConsumerWhenUnsubscribe(t *testing.T) {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
 			assert.NilError(t, err)
 		}
+		cancel()
 	}()
 
 	consumerGroup := consumerGroups[groupID]
 	errorConsumerGroup := errorConsumerGroups[errorGroupID]
-
-	_ = consumerGroup.Subscribe()
 
 	consumerGroup.WaitConsumerStart()
 	errorConsumerGroup.WaitConsumerStart()

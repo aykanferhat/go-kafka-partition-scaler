@@ -10,7 +10,7 @@ import (
 
 type testProducerInterceptor struct{}
 
-func NewTestProducerInterceptor() partitionscaler.ProducerInterceptor {
+func newTestProducerInterceptor() partitionscaler.ProducerInterceptor {
 	return &testProducerInterceptor{}
 }
 

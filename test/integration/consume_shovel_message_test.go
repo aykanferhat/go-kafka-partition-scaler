@@ -14,10 +14,10 @@ import (
 
 func Test_ConsumerShovel_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T) {
 	// Given
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	closeConsumerWhenThereIsNoMessage := 3 * time.Second
-	closeConsumerWhenMessageIsNew := 30 * time.Second
+	closeConsumerWhenMessageIsNew := 5 * time.Minute
 
 	clusterConfigsMap := map[string]*partitionscaler.ClusterConfig{
 		clusterName: {
@@ -54,15 +54,15 @@ func Test_ConsumerShovel_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T
 	consumersList := []*partitionscaler.ConsumerGroupErrorConsumers{
 		{
 			ConfigName:    topicConfigName,
-			ErrorConsumer: NewTestMessageConsumer(consumedMessageChan),
+			ErrorConsumer: newTestMessageConsumer(consumedMessageChan),
 		},
 	}
 
-	consumerErrorInterceptor := NewTestConsumerErrorInterceptor()
-	producerInterceptor := NewTestProducerInterceptor()
+	consumerErrorInterceptor := newTestConsumerErrorInterceptor()
+	producerInterceptor := newTestProducerInterceptor()
 
 	// When
-	kafkaContainer, _, errorConsumerGroups := InitializeErrorConsumerTestCluster(
+	kafkaContainer, _, errorConsumerGroups := initializeErrorConsumerTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -80,6 +80,7 @@ func Test_ConsumerShovel_ShouldCloseConsumerWhenThereIsNoNewMessage(t *testing.T
 		if err := kafkaContainer.Terminate(ctx); err != nil {
 			assert.NilError(t, err)
 		}
+		cancel()
 	}()
 
 	errorConsumerGroup := errorConsumerGroups[errorGroupID]

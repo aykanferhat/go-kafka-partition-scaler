@@ -5,6 +5,7 @@
 package internal
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -62,29 +63,29 @@ func (mr *MockErrorConsumerGroupMockRecorder) IsRunning() *gomock.Call {
 }
 
 // ScheduleToSubscribe mocks base method.
-func (m *MockErrorConsumerGroup) ScheduleToSubscribe() error {
+func (m *MockErrorConsumerGroup) ScheduleToSubscribe(arg0 context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ScheduleToSubscribe")
+	ret := m.ctrl.Call(m, "ScheduleToSubscribe", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ScheduleToSubscribe indicates an expected call of ScheduleToSubscribe.
-func (mr *MockErrorConsumerGroupMockRecorder) ScheduleToSubscribe() *gomock.Call {
+func (mr *MockErrorConsumerGroupMockRecorder) ScheduleToSubscribe(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ScheduleToSubscribe", reflect.TypeOf((*MockErrorConsumerGroup)(nil).ScheduleToSubscribe))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ScheduleToSubscribe", reflect.TypeOf((*MockErrorConsumerGroup)(nil).ScheduleToSubscribe), arg0)
 }
 
 // Subscribe mocks base method.
-func (m *MockErrorConsumerGroup) Subscribe() {
+func (m *MockErrorConsumerGroup) Subscribe(arg0 context.Context) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Subscribe")
+	m.ctrl.Call(m, "Subscribe", arg0)
 }
 
 // Subscribe indicates an expected call of Subscribe.
-func (mr *MockErrorConsumerGroupMockRecorder) Subscribe() *gomock.Call {
+func (mr *MockErrorConsumerGroupMockRecorder) Subscribe(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscribe", reflect.TypeOf((*MockErrorConsumerGroup)(nil).Subscribe))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscribe", reflect.TypeOf((*MockErrorConsumerGroup)(nil).Subscribe), arg0)
 }
 
 // Unsubscribe mocks base method.

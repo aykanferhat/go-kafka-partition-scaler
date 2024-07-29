@@ -343,6 +343,7 @@ You can set to a specific consumer
 or for all consumer
 
 ```go
+    ctx := context.Background()
     consumerInterceptor := interceptors.NewConsumerInterceptor()
     consumersList := []*partitionscaler.ConsumerGroupConsumers{
         {
@@ -352,7 +353,7 @@ or for all consumer
 	
     consumerGroups, errorConsumers, err := partitionscaler.NewConsumerBuilder(clusterConfigMap, consumerConfig, consumersList).
         Interceptor(consumerInterceptor).
-        Initialize()
+        Initialize(ctx)
 ```
 
 ### Producer Topic Config

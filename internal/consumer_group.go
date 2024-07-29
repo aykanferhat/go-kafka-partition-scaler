@@ -17,7 +17,7 @@ import (
 
 type ConsumerGroup interface {
 	GetGroupID() string
-	Subscribe() error
+	Subscribe(context.Context) error
 	Unsubscribe()
 	GetLastCommittedOffset(topic string, partition int32) int64
 	WaitConsumerStart()
@@ -110,7 +110,7 @@ func (c *consumerGroup) GetGroupID() string {
 	return c.initializedContext.ConsumerGroupConfig.GroupID
 }
 
-func (c *consumerGroup) Subscribe() error {
+func (c *consumerGroup) Subscribe(ctx context.Context) error {
 	c.mutex.Lock()
 	defer func() {
 		c.mutex.Unlock()
@@ -130,7 +130,7 @@ func (c *consumerGroup) Subscribe() error {
 	if err != nil {
 		return err
 	}
-	if err := cg.Subscribe(); err != nil {
+	if err := cg.Subscribe(ctx); err != nil {
 		log.Errorf("consumerGroup Subscribe err: %s", err.Error())
 		return err
 	}

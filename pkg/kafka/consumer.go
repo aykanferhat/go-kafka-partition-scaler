@@ -1,15 +1,15 @@
 package kafka
 
 import (
+	"context"
 	"time"
 
 	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/config"
 	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/sarama"
 )
 
-//go:generate mockgen  -source=consumer.go -destination=consumer_mock.go -package=kafka
 type ConsumerGroup interface {
-	Subscribe() error
+	Subscribe(ctx context.Context) error
 	Unsubscribe() error
 }
 

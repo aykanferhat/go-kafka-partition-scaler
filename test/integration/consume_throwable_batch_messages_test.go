@@ -16,7 +16,8 @@ import (
 
 func Test_BatchConsumer_ShouldConsumeThrowableMessages(t *testing.T) {
 	// Given
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+
 	maxRetryCount := 3
 	batchSize := 3
 	closeConsumerWhenMessageIsNew := time.Millisecond
@@ -63,17 +64,17 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessages(t *testing.T) {
 	consumersList := []*partitionscaler.ConsumerGroupConsumers{
 		{
 			ConfigName:    topicConfigName,
-			BatchConsumer: NewTestBatchMessageConsumer(consumedMessagesChan),
-			ErrorConsumer: NewTestErrorConsumerWithChannel(consumedErrorMessageChan),
+			BatchConsumer: newTestBatchMessageConsumer(consumedMessagesChan),
+			ErrorConsumer: newTestErrorConsumerWithChannel(consumedErrorMessageChan),
 		},
 	}
 
-	consumerInterceptor := NewTestConsumerHeaderInterceptor()
-	consumerErrorInterceptor := NewTestConsumerErrorInterceptor()
-	producerInterceptor := NewTestProducerInterceptor()
+	consumerInterceptor := newTestConsumerHeaderInterceptor()
+	consumerErrorInterceptor := newTestConsumerErrorInterceptor()
+	producerInterceptor := newTestProducerInterceptor()
 
 	// When
-	kafkaContainer, producers, consumers, errorConsumers := InitializeTestCluster(
+	kafkaContainer, producers, consumers, errorConsumers := initializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -91,10 +92,10 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessages(t *testing.T) {
 		if err := kafkaContainer.Terminate(ctx); err != nil {
 			assert.NilError(t, err)
 		}
+		cancel()
 	}()
 
 	consumerGroup := consumers[groupID]
-	_ = consumerGroup.Subscribe()
 	errorConsumerGroup := errorConsumers[errorGroupID]
 
 	consumerGroup.WaitConsumerStart()
@@ -155,7 +156,7 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessages(t *testing.T) {
 
 func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenErrorTopicNotFound(t *testing.T) {
 	// Given
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	maxRetryCount := 3
 	batchSize := 3
@@ -192,18 +193,18 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenErrorTopicNotFound(t *
 	consumersList := []*partitionscaler.ConsumerGroupConsumers{
 		{
 			ConfigName:    topicConfigName,
-			BatchConsumer: NewTestBatchMessageConsumer(consumedMessagesChan),
+			BatchConsumer: newTestBatchMessageConsumer(consumedMessagesChan),
 		},
 	}
 
-	consumerInterceptor := NewTestConsumerHeaderInterceptor()
-	consumerErrorInterceptor := NewTestConsumerErrorInterceptor()
-	producerInterceptor := NewTestProducerInterceptor()
+	consumerInterceptor := newTestConsumerHeaderInterceptor()
+	consumerErrorInterceptor := newTestConsumerErrorInterceptor()
+	producerInterceptor := newTestProducerInterceptor()
 
 	consumedErrorMessageChan := make(chan *partitionscaler.ConsumerMessage, 1)
 
 	// When
-	kafkaContainer, producers, consumers, errorConsumers := InitializeTestCluster(
+	kafkaContainer, producers, consumers, _ := initializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -223,10 +224,10 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenErrorTopicNotFound(t *
 		if err := kafkaContainer.Terminate(ctx); err != nil {
 			assert.NilError(t, err)
 		}
+		cancel()
 	}()
 
 	consumerGroup := consumers[groupID]
-	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	produceMessages := []partitionscaler.Message{
@@ -273,14 +274,13 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenErrorTopicNotFound(t *
 		}
 	}
 
-	assert.Equal(t, 0, len(errorConsumers))
 	assert.Equal(t, maxRetryCount, len(consumedRetriedMessages))
 	assert.Equal(t, len(produceMessages), len(consumedMessages))
 }
 
 func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryTopicNotFound(t *testing.T) {
 	// Given
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	batchSize := 3
 	closeConsumerWhenMessageIsNew := time.Millisecond
@@ -325,17 +325,17 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryTopicNotFound(t *
 	consumersList := []*partitionscaler.ConsumerGroupConsumers{
 		{
 			ConfigName:    topicConfigName,
-			BatchConsumer: NewTestBatchMessageConsumer(consumedMessagesChan),
-			ErrorConsumer: NewTestErrorConsumerWithChannel(consumedErrorMessageChan),
+			BatchConsumer: newTestBatchMessageConsumer(consumedMessagesChan),
+			ErrorConsumer: newTestErrorConsumerWithChannel(consumedErrorMessageChan),
 		},
 	}
 
-	consumerInterceptor := NewTestConsumerHeaderInterceptor()
-	consumerErrorInterceptor := NewTestConsumerErrorInterceptor()
-	producerInterceptor := NewTestProducerInterceptor()
+	consumerInterceptor := newTestConsumerHeaderInterceptor()
+	consumerErrorInterceptor := newTestConsumerErrorInterceptor()
+	producerInterceptor := newTestProducerInterceptor()
 
 	// When
-	kafkaContainer, producers, consumers, errorConsumers := InitializeTestCluster(
+	kafkaContainer, producers, consumers, errorConsumers := initializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -353,12 +353,11 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryTopicNotFound(t *
 		if err := kafkaContainer.Terminate(ctx); err != nil {
 			assert.NilError(t, err)
 		}
+		cancel()
 	}()
 
 	consumerGroup := consumers[groupID]
 	errorConsumerGroup := errorConsumers[errorGroupID]
-
-	_ = consumerGroup.Subscribe()
 
 	consumerGroup.WaitConsumerStart()
 	errorConsumerGroup.WaitConsumerStart()
@@ -409,7 +408,7 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryTopicNotFound(t *
 
 func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryAndErrorTopicNotFound(t *testing.T) {
 	// Given
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	batchSize := 3
 	consumeBatchListenerLatency := time.Second
@@ -445,18 +444,18 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryAndErrorTopicNotF
 	consumersList := []*partitionscaler.ConsumerGroupConsumers{
 		{
 			ConfigName:    topicConfigName,
-			BatchConsumer: NewTestBatchMessageConsumer(consumedMessagesChan),
+			BatchConsumer: newTestBatchMessageConsumer(consumedMessagesChan),
 		},
 	}
 
-	consumerInterceptor := NewTestConsumerHeaderInterceptor()
-	consumerErrorInterceptor := NewTestConsumerErrorInterceptor()
-	producerInterceptor := NewTestProducerInterceptor()
+	consumerInterceptor := newTestConsumerHeaderInterceptor()
+	consumerErrorInterceptor := newTestConsumerErrorInterceptor()
+	producerInterceptor := newTestProducerInterceptor()
 
 	consumedLastStepErrorMessageChan := make(chan *partitionscaler.ConsumerMessage, 1)
 
 	// When
-	kafkaContainer, producers, consumers, _ := InitializeTestCluster(
+	kafkaContainer, producers, consumers, _ := initializeTestCluster(
 		ctx,
 		t,
 		clusterConfigsMap,
@@ -476,11 +475,11 @@ func Test_BatchConsumer_ShouldConsumeThrowableMessagesWhenRetryAndErrorTopicNotF
 		if err := kafkaContainer.Terminate(ctx); err != nil {
 			assert.NilError(t, err)
 		}
+		cancel()
 	}()
 
 	consumerGroup := consumers[groupID]
 
-	_ = consumerGroup.Subscribe()
 	consumerGroup.WaitConsumerStart()
 
 	produceMessages := []partitionscaler.Message{

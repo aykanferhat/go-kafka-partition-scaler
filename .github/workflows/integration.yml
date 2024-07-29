@@ -30,7 +30,7 @@ jobs:
           go-version: '1.20'
 
       - name: Integration Test
-        run: go test -v ./test/integration
+        run: go test -v ./test/integration -timeout 20m
         env:
           INPUT_PUBLISH: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

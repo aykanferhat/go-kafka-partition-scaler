@@ -13,7 +13,7 @@ type testBatchMessageConsumer struct {
 	consumedMessagesChan chan []*partitionscaler.ConsumerMessage
 }
 
-func NewTestBatchMessageConsumer(
+func newTestBatchMessageConsumer(
 	consumedMessagesChan chan []*partitionscaler.ConsumerMessage,
 ) partitionscaler.BatchConsumer {
 	return &testBatchMessageConsumer{
