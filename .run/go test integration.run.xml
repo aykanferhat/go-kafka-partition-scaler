@@ -5,7 +5,7 @@
     <go_parameters value="-timeout 20m" />
     <root_directory value="$PROJECT_DIR$/../partitionscaler" />
     <kind value="PACKAGE" />
-    <package value="github.com/Trendyol/go-kafka-partition-scaler/test/integration" />
+    <package value="github.com/aykanferhat/go-kafka-partition-scaler/test/integration" />
     <directory value="$PROJECT_DIR$/../partitionscaler/test/integration" />
     <filePath value="$PROJECT_DIR$/../partitionscaler" />
     <framework value="gotest" />

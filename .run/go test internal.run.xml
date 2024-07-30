@@ -2,10 +2,9 @@
   <configuration default="false" name="go test internal" type="GoTestRunConfiguration" factoryName="Go Test">
     <module name="go-kafka-partition-scaler" />
     <working_directory value="$PROJECT_DIR$/test/integration" />
-    <go_parameters value="-timeout 30m" />
     <root_directory value="$PROJECT_DIR$/../partitionscaler" />
     <kind value="PACKAGE" />
-    <package value="github.com/Trendyol/go-kafka-partition-scaler/internal" />
+    <package value="github.com/aykanferhat/go-kafka-partition-scaler/internal" />
     <directory value="$PROJECT_DIR$/../partitionscaler/internal" />
     <filePath value="$PROJECT_DIR$/../partitionscaler" />
     <framework value="gotest" />
