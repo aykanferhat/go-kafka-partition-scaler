@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
-	"github.com/Trendyol/go-kafka-partition-scaler/common"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/config"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/log"
+	"github.com/aykanferhat/go-kafka-partition-scaler/common"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/config"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 )
 
 func NewSaramaConfig(clusterConfig *config.ClusterConfig, consumerGroupConfig *config.ConsumerGroupConfig) (*sarama.Config, error) {

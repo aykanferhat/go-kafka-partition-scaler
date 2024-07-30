@@ -3,9 +3,9 @@ package integration
 import (
 	"context"
 
-	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
+	partitionscaler "github.com/aykanferhat/go-kafka-partition-scaler"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/common"
+	"github.com/aykanferhat/go-kafka-partition-scaler/common"
 )
 
 type testConsumerHeaderInterceptor struct{}

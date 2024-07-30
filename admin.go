@@ -1,5 +1,5 @@
 package partitionscaler
 
-import "github.com/Trendyol/go-kafka-partition-scaler/internal"
+import "github.com/aykanferhat/go-kafka-partition-scaler/internal"
 
 var NewAdmin = internal.NewAdmin

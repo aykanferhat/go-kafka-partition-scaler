@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/IBM/sarama"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/json"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/config"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/message"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/json"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/config"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
 )
 
 type Producer struct {

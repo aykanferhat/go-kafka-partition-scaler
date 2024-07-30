@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/cron"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/log"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/cron"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 )
 
 type ErrorConsumerGroup interface {

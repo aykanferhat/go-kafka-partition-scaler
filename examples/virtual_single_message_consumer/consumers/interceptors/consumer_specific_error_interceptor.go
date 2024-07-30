@@ -3,7 +3,7 @@ package interceptors
 import (
 	"context"
 
-	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
+	partitionscaler "github.com/aykanferhat/go-kafka-partition-scaler"
 )
 
 // optional, we will set specific consumer error interceptor

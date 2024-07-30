@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 
-	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
-	"github.com/Trendyol/go-kafka-partition-scaler/examples/producer/interceptors"
-	"github.com/Trendyol/go-kafka-partition-scaler/examples/producer/log"
-	"github.com/Trendyol/go-kafka-partition-scaler/examples/producer/model"
+	partitionscaler "github.com/aykanferhat/go-kafka-partition-scaler"
+	"github.com/aykanferhat/go-kafka-partition-scaler/examples/producer/interceptors"
+	"github.com/aykanferhat/go-kafka-partition-scaler/examples/producer/log"
+	"github.com/aykanferhat/go-kafka-partition-scaler/examples/producer/model"
 )
 
 const (

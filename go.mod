@@ -1,4 +1,4 @@
-module github.com/Trendyol/go-kafka-partition-scaler
+module github.com/aykanferhat/go-kafka-partition-scaler
 
 go 1.21
 

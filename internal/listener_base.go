@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/common"
+	"github.com/aykanferhat/go-kafka-partition-scaler/common"
 )
 
 type baseMessageVirtualListener struct {

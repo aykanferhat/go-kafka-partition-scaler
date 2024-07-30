@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/common"
+	"github.com/aykanferhat/go-kafka-partition-scaler/common"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/message"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

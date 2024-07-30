@@ -7,9 +7,9 @@ import (
 
 	"github.com/IBM/sarama"
 
-	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/json"
-	"github.com/Trendyol/go-kafka-partition-scaler/test/testdata"
+	partitionscaler "github.com/aykanferhat/go-kafka-partition-scaler"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/json"
+	"github.com/aykanferhat/go-kafka-partition-scaler/test/testdata"
 	"gotest.tools/v3/assert"
 )
 

@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/IBM/sarama"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/config"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/config"
 )
 
 type Admin struct {

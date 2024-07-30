@@ -1,6 +1,6 @@
 package kafka
 
-import "github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/handler"
+import "github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/handler"
 
 type (
 	MessageHandler        = handler.MessageHandler

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/log"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 )
 
 const (

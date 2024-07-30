@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/message"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
 )
 
 type (

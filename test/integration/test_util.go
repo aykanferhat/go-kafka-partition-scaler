@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
+	partitionscaler "github.com/aykanferhat/go-kafka-partition-scaler"
 
 	"github.com/IBM/sarama"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/log"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 
 	"github.com/testcontainers/testcontainers-go"
 	containerKafka "github.com/testcontainers/testcontainers-go/modules/kafka"

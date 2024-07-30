@@ -3,10 +3,10 @@ package integration
 import (
 	"context"
 
-	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
+	partitionscaler "github.com/aykanferhat/go-kafka-partition-scaler"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/json"
-	"github.com/Trendyol/go-kafka-partition-scaler/test/testdata"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/json"
+	"github.com/aykanferhat/go-kafka-partition-scaler/test/testdata"
 )
 
 type testBatchMessageConsumer struct {

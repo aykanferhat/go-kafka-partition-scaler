@@ -1,6 +1,6 @@
 package log
 
-import partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
+import partitionscaler "github.com/aykanferhat/go-kafka-partition-scaler"
 
 // You can set your logger to kafka
 

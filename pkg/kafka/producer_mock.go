@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	message "github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/message"
+	message "github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
 	gomock "github.com/golang/mock/gomock"
 )
 

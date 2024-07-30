@@ -5,14 +5,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/csmap"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/csmap"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/common"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/handler"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/message"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/log"
+	"github.com/aykanferhat/go-kafka-partition-scaler/common"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/handler"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
 )
 
 type ConsumerGroup interface {

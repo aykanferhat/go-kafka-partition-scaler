@@ -7,7 +7,7 @@ import (
 
 	"github.com/IBM/sarama"
 
-	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
+	partitionscaler "github.com/aykanferhat/go-kafka-partition-scaler"
 
 	"gotest.tools/v3/assert"
 )

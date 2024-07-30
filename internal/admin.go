@@ -1,6 +1,6 @@
 package internal
 
-import "github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka"
+import "github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
 
 type Admin = kafka.Admin
 

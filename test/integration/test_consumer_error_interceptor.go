@@ -3,7 +3,7 @@ package integration
 import (
 	"context"
 
-	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
+	partitionscaler "github.com/aykanferhat/go-kafka-partition-scaler"
 )
 
 type testConsumerErrorInterceptor struct{}

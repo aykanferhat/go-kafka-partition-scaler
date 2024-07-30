@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
 )
 
 type Producer interface {

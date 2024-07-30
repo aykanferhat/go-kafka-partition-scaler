@@ -2,8 +2,8 @@ package sarama
 
 import (
 	"github.com/IBM/sarama"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/handler"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/message"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/handler"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
 )
 
 type consumerGroupCoreHandler struct {

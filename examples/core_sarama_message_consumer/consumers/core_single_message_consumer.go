@@ -3,7 +3,7 @@ package consumers
 import (
 	"context"
 
-	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
+	partitionscaler "github.com/aykanferhat/go-kafka-partition-scaler"
 )
 
 type coreSingleMessageConsumer struct{}

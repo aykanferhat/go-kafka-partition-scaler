@@ -1,8 +1,8 @@
 package partitionscaler
 
 import (
-	"github.com/Trendyol/go-kafka-partition-scaler/common"
-	"github.com/Trendyol/go-kafka-partition-scaler/internal"
+	"github.com/aykanferhat/go-kafka-partition-scaler/common"
+	"github.com/aykanferhat/go-kafka-partition-scaler/internal"
 )
 
 type (

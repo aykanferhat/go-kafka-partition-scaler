@@ -1,8 +1,8 @@
 package kafka
 
 import (
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/config"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/sarama"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/config"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/sarama"
 )
 
 type Admin interface {

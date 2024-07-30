@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/common"
+	"github.com/aykanferhat/go-kafka-partition-scaler/common"
 
 	"github.com/stretchr/testify/assert"
 )

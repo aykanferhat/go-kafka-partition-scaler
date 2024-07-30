@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka"
-	"github.com/Trendyol/go-kafka-partition-scaler/test/testdata"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
+	"github.com/aykanferhat/go-kafka-partition-scaler/test/testdata"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

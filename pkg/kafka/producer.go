@@ -3,9 +3,9 @@ package kafka
 import (
 	"context"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/config"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/message"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka/sarama"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/config"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/sarama"
 )
 
 type Producer interface {

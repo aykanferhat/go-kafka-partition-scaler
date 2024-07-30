@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/uuid"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/uuid"
 )
 
 type uniqueMessageListener struct {

@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 
-	partitionscaler "github.com/Trendyol/go-kafka-partition-scaler"
-	"github.com/Trendyol/go-kafka-partition-scaler/examples/virtual_single_message_consumer/consumers"
-	"github.com/Trendyol/go-kafka-partition-scaler/examples/virtual_single_message_consumer/consumers/interceptors"
-	"github.com/Trendyol/go-kafka-partition-scaler/examples/virtual_single_message_consumer/log"
+	partitionscaler "github.com/aykanferhat/go-kafka-partition-scaler"
+	"github.com/aykanferhat/go-kafka-partition-scaler/examples/virtual_single_message_consumer/consumers"
+	"github.com/aykanferhat/go-kafka-partition-scaler/examples/virtual_single_message_consumer/consumers/interceptors"
+	"github.com/aykanferhat/go-kafka-partition-scaler/examples/virtual_single_message_consumer/log"
 )
 
 const (

@@ -3,8 +3,8 @@ package internal
 import (
 	"time"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/csmap"
-	"github.com/Trendyol/go-kafka-partition-scaler/pkg/kafka"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/csmap"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
 )
 
 type Status string

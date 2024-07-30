@@ -3,7 +3,7 @@ package internal
 import (
 	"context"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/common"
+	"github.com/aykanferhat/go-kafka-partition-scaler/common"
 )
 
 type EndFunc = common.EndFunc

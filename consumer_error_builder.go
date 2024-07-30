@@ -3,7 +3,7 @@ package partitionscaler
 import (
 	"context"
 
-	"github.com/Trendyol/go-kafka-partition-scaler/internal"
+	"github.com/aykanferhat/go-kafka-partition-scaler/internal"
 )
 
 type ConsumerErrorBuilder struct {
