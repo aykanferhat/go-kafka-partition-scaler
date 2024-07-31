@@ -1,6 +1,6 @@
 module github.com/aykanferhat/go-kafka-partition-scaler
 
-go 1.21
+go 1.20
 
 require (
 	github.com/IBM/sarama v1.43.2
