@@ -11,23 +11,26 @@ permissions:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: [ "7.6.1" ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - run: git tag ${{ github.event.inputs.tag }}
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: 1.20
+          go-version: '1.20'
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
-          version: v1.10.3 # specify a version known to support the flag
-          args: release --rm-dist
+          version: latest
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
