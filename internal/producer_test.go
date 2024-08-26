@@ -3,8 +3,9 @@ package internal
 import (
 	"context"
 	"fmt"
-	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 	"testing"
+
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
 	"github.com/aykanferhat/go-kafka-partition-scaler/test/testdata"

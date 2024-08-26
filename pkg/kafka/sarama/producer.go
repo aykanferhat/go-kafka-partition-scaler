@@ -2,6 +2,7 @@ package sarama
 
 import (
 	"context"
+
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 
 	"github.com/IBM/sarama"

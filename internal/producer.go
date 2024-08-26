@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 	"strings"
+
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
 )

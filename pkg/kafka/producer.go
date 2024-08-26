@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/config"

@@ -45,7 +45,7 @@ func Test_SingleMessageListener_ShouldListenMessage(t *testing.T) {
 	}
 
 	processedMessageListener := NewMockProcessedMessageListener(controller)
-	processedMessageListener.EXPECT().IsChannelClosed().Return(false).Times(1)
+	processedMessageListener.EXPECT().IsStopped().Return(false).Times(1)
 	processedMessageListener.EXPECT().Publish(message).Times(1)
 
 	producer := kafka.NewMockProducer(controller)
@@ -120,7 +120,7 @@ func Test_SingleMessageListener_ShouldListenRetriedMessage(t *testing.T) {
 	}
 
 	processedMessageListener := NewMockProcessedMessageListener(controller)
-	processedMessageListener.EXPECT().IsChannelClosed().Return(false).Times(1)
+	processedMessageListener.EXPECT().IsStopped().Return(false).Times(1)
 	processedMessageListener.EXPECT().Publish(message).Times(1)
 
 	producer := kafka.NewMockProducer(controller)
@@ -196,7 +196,7 @@ func Test_SingleMessageListener_ShouldListenReachedMaxRetriedCount(t *testing.T)
 	}
 
 	processedMessageListener := NewMockProcessedMessageListener(controller)
-	processedMessageListener.EXPECT().IsChannelClosed().Return(false).Times(1)
+	processedMessageListener.EXPECT().IsStopped().Return(false).Times(1)
 	processedMessageListener.EXPECT().Publish(message).Times(1)
 
 	producer := kafka.NewMockProducer(controller)
@@ -266,7 +266,7 @@ func Test_SingleMessageListener_ShouldListenMessageWhenRetryTopicNotFoundButExis
 	}
 
 	processedMessageListener := NewMockProcessedMessageListener(controller)
-	processedMessageListener.EXPECT().IsChannelClosed().Return(false).Times(1)
+	processedMessageListener.EXPECT().IsStopped().Return(false).Times(1)
 	processedMessageListener.EXPECT().Publish(gomock.Any()).Times(1)
 
 	producer := kafka.NewMockProducer(controller)
@@ -342,7 +342,7 @@ func Test_SingleMessageListener_ShouldListenReachedMaxRetriedCountWhenErrorTopic
 	}
 
 	processedMessageListener := NewMockProcessedMessageListener(controller)
-	processedMessageListener.EXPECT().IsChannelClosed().Return(false).Times(1)
+	processedMessageListener.EXPECT().IsStopped().Return(false).Times(1)
 	processedMessageListener.EXPECT().Publish(message).Times(1)
 
 	producer := kafka.NewMockProducer(controller)
@@ -413,7 +413,7 @@ func Test_SingleMessageListener_ShouldListenMessageWhenErrorAndRetryTopicNotFoun
 	}
 
 	processedMessageListener := NewMockProcessedMessageListener(controller)
-	processedMessageListener.EXPECT().IsChannelClosed().Return(false).Times(1)
+	processedMessageListener.EXPECT().IsStopped().Return(false).Times(1)
 	processedMessageListener.EXPECT().Publish(message).Times(1)
 
 	producer := kafka.NewMockProducer(controller)
