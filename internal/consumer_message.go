@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	ConsumerMessage message.ConsumerMessage
+	ConsumerMessage = message.ConsumerMessage
 	ProducerMessage = message.ProducerMessage
 	Header          = message.Header
 )

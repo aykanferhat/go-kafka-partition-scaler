@@ -52,7 +52,7 @@ func NewErrorConsumerGroup(
 		scheduleToSubscribeCron:     cron.NewCron(),
 		lastStep:                    lastStep,
 		tracers:                     tracers,
-		consumerGroupStatusTicker:   time.NewTicker(2 * time.Second),
+		consumerGroupStatusTicker:   time.NewTicker(1 * time.Second),
 		consumerGroupStatusListener: newConsumerGroupStatusListener(),
 		mutex:                       &sync.Mutex{},
 	}
@@ -72,19 +72,18 @@ func (c *errorConsumerGroup) Handle() kafka.MessageHandler {
 			}
 			c.consumerGroupStatusListener.Change(key, topic, partition, msg.Offset, ListenedMessage)
 			msg.SetAdditionalFields(0, c.errorConsumerConfig.GroupID, c.errorConsumerConfig.Tracer)
-			castedMessage := (*ConsumerMessage)(msg)
 			ctx := context.Background()
-			errorCount := getErrorCount(castedMessage)
+			errorCount := getErrorCount(msg)
 			if errorCount > c.errorConsumerConfig.MaxErrorCount {
-				err := errors.New(getErrorMessage(castedMessage))
+				err := errors.New(getErrorMessage(msg))
 				reachedMaxRetryErrorCountErr := fmt.Errorf("reached max error count, errRetriedCount: %d", errorCount)
 				joinedErr := errors.Join(err, reachedMaxRetryErrorCountErr)
-				c.lastStep(ctx, castedMessage, joinedErr)
+				c.lastStep(ctx, msg, joinedErr)
 				commitFunc(msg.Topic, msg.Partition, msg.Offset)
 				continue
 			}
-			if err := processMessage(ctx, consumer, castedMessage, c.errorConsumerConfig.MaxProcessingTime); err != nil {
-				c.lastStep(ctx, castedMessage, err)
+			if err := processMessage(ctx, consumer, msg, c.errorConsumerConfig.MaxProcessingTime); err != nil {
+				c.lastStep(ctx, msg, err)
 			}
 			commitFunc(msg.Topic, msg.Partition, msg.Offset)
 		}
@@ -128,10 +127,18 @@ func (c *errorConsumerGroup) Subscribe(ctx context.Context) {
 		logger.Errorf("errorConsumerGroup Subscribe err: %s", err.Error())
 		return
 	}
-	if err := cg.Subscribe(ctx); err != nil {
+	consumerDied, err := cg.Subscribe(ctx)
+	if err != nil {
 		logger.Errorf("errorConsumerGroup Subscribe err: %s", err.Error())
 		return
 	}
+	go func() {
+		for range consumerDied {
+			c.Unsubscribe()
+			break
+		}
+		close(consumerDied)
+	}()
 	c.cg = cg
 	c.subscribed = true
 	logger.Infof("errorConsumerGroup Subscribed, groupId: %s", c.errorConsumerConfig.GroupID)
@@ -171,28 +178,30 @@ func (c *errorConsumerGroup) WaitConsumerStop() {
 
 func (c *errorConsumerGroup) listenUnSubscribableStatus() {
 	go func() {
-		closeConsumerWhenThereIsNoMessage := c.errorConsumerConfig.CloseConsumerWhenThereIsNoMessage.Nanoseconds()
 		for range c.consumerGroupStatusTicker.C {
 			if !c.subscribed {
 				continue
 			}
-			var unsubscribable bool
-			for _, status := range c.consumerGroupStatusListener.consumerGroupStatusMap.ToMap() {
-				if status.Status == ErrorConsumerOccurredViolation ||
-					(status.Status == AssignedTopicPartition && time.Since(status.Time).Nanoseconds() > closeConsumerWhenThereIsNoMessage) ||
-					(status.Status == StartedListening && time.Since(status.Time).Nanoseconds() > closeConsumerWhenThereIsNoMessage) ||
-					(status.Status == ListenedMessage && time.Since(status.Time).Nanoseconds() > closeConsumerWhenThereIsNoMessage) {
-					unsubscribable = true
-				} else {
-					unsubscribable = false
-					break
-				}
-			}
-			if unsubscribable {
+			unSubscribableTopicPartition := c.getUnSubscribablePartitions()
+			if len(unSubscribableTopicPartition) > 0 {
 				c.Unsubscribe()
 			}
 		}
 	}()
+}
+
+func (c *errorConsumerGroup) getUnSubscribablePartitions() map[string][]int32 {
+	closeConsumerWhenThereIsNoMessage := c.errorConsumerConfig.CloseConsumerWhenThereIsNoMessage.Nanoseconds()
+	stoppableTopicPartitions := make(map[string][]int32)
+	for _, status := range c.consumerGroupStatusListener.consumerGroupStatusMap.ToMap() {
+		if status.Status == ErrorConsumerOccurredViolation ||
+			(status.Status == AssignedTopicPartition && time.Since(status.Time).Nanoseconds() > closeConsumerWhenThereIsNoMessage) ||
+			(status.Status == StartedListening && time.Since(status.Time).Nanoseconds() > closeConsumerWhenThereIsNoMessage) ||
+			(status.Status == ListenedMessage && time.Since(status.Time).Nanoseconds() > closeConsumerWhenThereIsNoMessage) {
+			stoppableTopicPartitions[status.Topic] = append(stoppableTopicPartitions[status.Topic], status.Partition)
+		}
+	}
+	return stoppableTopicPartitions
 }
 
 func (c *errorConsumerGroup) existsErrorTopic() bool {

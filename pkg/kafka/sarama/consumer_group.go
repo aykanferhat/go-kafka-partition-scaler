@@ -53,24 +53,27 @@ func NewConsumerGroup(
 
 const subscribeErr = "Error from consumerGroup group: %s, err: %s"
 
-func (c *ConsumerGroup) Subscribe(ctx context.Context) error {
+func (c *ConsumerGroup) Subscribe(ctx context.Context) (chan bool, error) {
 	client, err := sarama.NewClient(c.clusterConfig.Brokers, c.saramaConfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	consumerGroup, err := sarama.NewConsumerGroupFromClient(c.consumerGroupConfig.GroupID, client)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	consumerDiedChan := make(chan bool)
 	consumerGroupHandler := NewConsumerGroupHandler(c.messageHandler, c.consumerStatusHandler)
 	go func() {
 		for {
 			if err := consumerGroup.Consume(ctx, c.consumerGroupConfig.Topics, consumerGroupHandler); err != nil {
 				if errors.Is(err, ErrClosedConsumerGroup) {
+					consumerDiedChan <- true
 					break
 				}
 				if ctx.Err() != nil {
 					c.logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, ctx.Err().Error())
+					consumerDiedChan <- true
 					break
 				}
 				c.logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, err.Error())
@@ -78,9 +81,11 @@ func (c *ConsumerGroup) Subscribe(ctx context.Context) error {
 			}
 			if ctx.Err() != nil {
 				c.logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, ctx.Err().Error())
+				consumerDiedChan <- true
 				break
 			}
 			if c.consumerGroupConfig.IsErrorConsumer { // we don't want to start again when rebalance or else.
+				consumerDiedChan <- true
 				break
 			}
 		}
@@ -92,7 +97,7 @@ func (c *ConsumerGroup) Subscribe(ctx context.Context) error {
 	}()
 	c.client = client
 	c.consumerGroup = consumerGroup
-	return nil
+	return consumerDiedChan, nil
 }
 
 var clientClosedErr = "kafka: tried to use a client that was closed"

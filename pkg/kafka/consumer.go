@@ -11,7 +11,7 @@ import (
 )
 
 type ConsumerGroup interface {
-	Subscribe(ctx context.Context) error
+	Subscribe(ctx context.Context) (chan bool, error)
 	Unsubscribe() error
 }
 

@@ -62,11 +62,10 @@ func (c *consumerGroup) Handle() handler.MessageHandler {
 			c.consumerGroupStatusListener.Change(key, topic, partition, msg.Offset, ListenedMessage)
 			msg.SetAdditionalFields(0, c.initializedContext.ConsumerGroupConfig.GroupID, tracerName)
 			ctx := context.Background()
-			castedMessage := (*ConsumerMessage)(msg)
-			ctx = c.intercept(ctx, castedMessage)
-			endFunc := c.startTracer(ctx, castedMessage)
-			if err := processMessage(ctx, consumer, castedMessage, c.initializedContext.ConsumerGroupConfig.MaxProcessingTime); err != nil {
-				processConsumedMessageError(ctx, castedMessage, err, c.initializedContext)
+			ctx = c.intercept(ctx, msg)
+			endFunc := c.startTracer(ctx, msg)
+			if err := processMessage(ctx, consumer, msg, c.initializedContext.ConsumerGroupConfig.MaxProcessingTime); err != nil {
+				processConsumedMessageError(ctx, msg, err, c.initializedContext)
 			}
 			endFunc()
 			commitFunc(msg.Topic, msg.Partition, msg.Offset)
@@ -78,10 +77,10 @@ func (c *consumerGroup) HandleVirtual() handler.MessageHandler {
 	tracerName := c.initializedContext.ConsumerGroupConfig.Tracer
 	return func(topic string, partition int32, messageChan <-chan *message.ConsumerMessage, commitFunc kafka.CommitMessageFunc) {
 		processedMessageListener := NewProcessedMessageListener(topic, partition, c.initializedContext.ConsumerGroupConfig.VirtualPartitionCount, commitFunc)
-		messageVirtualListeners := csmap.Create[int, MessageVirtualListener](uint64(c.initializedContext.ConsumerGroupConfig.VirtualPartitionCount))
+		messageVirtualListeners := make(map[int]MessageVirtualListener)
 		for virtualPartition := 0; virtualPartition < c.initializedContext.ConsumerGroupConfig.VirtualPartitionCount; virtualPartition++ {
 			messageVirtualListener := NewMessageVirtualListener(topic, partition, virtualPartition, c.initializedContext, processedMessageListener)
-			messageVirtualListeners.Store(virtualPartition, messageVirtualListener)
+			messageVirtualListeners[virtualPartition] = messageVirtualListener
 		}
 		key := getKey(topic, partition)
 		c.processedMessageListeners.Store(key, processedMessageListener)
@@ -95,14 +94,12 @@ func (c *consumerGroup) HandleVirtual() handler.MessageHandler {
 			c.consumerGroupStatusListener.Change(key, topic, partition, msg.Offset, ListenedMessage)
 			virtualPartition := calculateVirtualPartition(string(msg.Key), c.initializedContext.ConsumerGroupConfig.VirtualPartitionCount)
 			msg.SetAdditionalFields(virtualPartition, c.initializedContext.ConsumerGroupConfig.GroupID, tracerName)
-			castedMessage := (*ConsumerMessage)(msg)
-			messageVirtualListener, _ := messageVirtualListeners.Load(virtualPartition)
-			messageVirtualListener.Publish(castedMessage)
+			messageVirtualListener, _ := messageVirtualListeners[virtualPartition]
+			messageVirtualListener.Publish(msg)
 		}
-		messageVirtualListeners.Range(func(_ int, messageVirtualListener MessageVirtualListener) (stop bool) {
+		for _, messageVirtualListener := range messageVirtualListeners {
 			messageVirtualListener.Close()
-			return
-		})
+		}
 		processedMessageListener.Close()
 	}
 }
@@ -132,10 +129,18 @@ func (c *consumerGroup) Subscribe(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if err := cg.Subscribe(ctx); err != nil {
+	consumerDied, err := cg.Subscribe(ctx)
+	if err != nil {
 		logger.Errorf("consumerGroup Subscribe err: %s", err.Error())
 		return err
 	}
+	go func() {
+		for range consumerDied {
+			c.Unsubscribe()
+			break
+		}
+		close(consumerDied)
+	}()
 	c.consumerGroupStatusListener.listenConsumerStart()
 	c.cg = cg
 	logger.Infof("consumerGroup Subscribed, groupId: %s", c.GetGroupID())

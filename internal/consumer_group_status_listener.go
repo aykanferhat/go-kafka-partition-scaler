@@ -36,20 +36,17 @@ type ConsumerGroupStatusListener struct {
 }
 
 func (listener *ConsumerGroupStatusListener) Change(key, topic string, partition int32, offset int64, status Status) {
-	existsStatus, exists := listener.consumerGroupStatusMap.Load(key)
-	if !exists {
-		listener.consumerGroupStatusMap.Store(key, &ConsumerGroupStatus{
-			Time:      time.Now(),
-			Topic:     topic,
-			Status:    status,
-			Offset:    offset,
-			Partition: partition,
-		})
-		return
-	}
-	existsStatus.Status = status
-	existsStatus.Offset = offset
-	listener.consumerGroupStatusMap.Store(key, existsStatus)
+	listener.consumerGroupStatusMap.Store(key, &ConsumerGroupStatus{
+		Time:      time.Now(),
+		Topic:     topic,
+		Status:    status,
+		Offset:    offset,
+		Partition: partition,
+	})
+}
+
+func (listener *ConsumerGroupStatusListener) Remove(key string) {
+	listener.consumerGroupStatusMap.Delete(key)
 }
 
 func (listener *ConsumerGroupStatusListener) WaitConsumerStart() {
