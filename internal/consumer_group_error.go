@@ -9,7 +9,6 @@ import (
 
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/cron"
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
-	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 )
 
 type ErrorConsumerGroup interface {
@@ -119,18 +118,19 @@ func (c *errorConsumerGroup) Subscribe(ctx context.Context) {
 		mapToErrorConsumerGroupConfig(c.errorConsumerConfig),
 		c.Handle(),
 		c.consumerGroupStatusListener.HandleConsumerGroupStatus(),
+		logger,
 	)
 	if err != nil {
-		log.Errorf("errorConsumerGroup Subscribe err: %s", err.Error())
+		logger.Errorf("errorConsumerGroup Subscribe err: %s", err.Error())
 		return
 	}
 	if err := cg.Subscribe(ctx); err != nil {
-		log.Errorf("errorConsumerGroup Subscribe err: %s", err.Error())
+		logger.Errorf("errorConsumerGroup Subscribe err: %s", err.Error())
 		return
 	}
 	c.cg = cg
 	c.subscribed = true
-	log.Infof("errorConsumerGroup Subscribed, groupId: %s", c.errorConsumerConfig.GroupID)
+	logger.Infof("errorConsumerGroup Subscribed, groupId: %s", c.errorConsumerConfig.GroupID)
 }
 
 func (c *errorConsumerGroup) Unsubscribe() {
@@ -144,11 +144,11 @@ func (c *errorConsumerGroup) Unsubscribe() {
 		return
 	}
 	if err := c.cg.Unsubscribe(); err != nil {
-		log.Errorf("errorConsumerGroup Unsubscribe err: %s", err.Error())
+		logger.Errorf("errorConsumerGroup Unsubscribe err: %s", err.Error())
 		return
 	}
 	c.cg = nil
-	log.Infof("errorConsumerGroup Unsubscribed, groupId: %s", c.errorConsumerConfig.GroupID)
+	logger.Infof("errorConsumerGroup Unsubscribed, groupId: %s", c.errorConsumerConfig.GroupID)
 }
 
 func (c *errorConsumerGroup) IsRunning() bool {

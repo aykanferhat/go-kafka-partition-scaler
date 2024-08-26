@@ -22,8 +22,8 @@ func NewProducerBuilderWithConfig(clusterConfigMap ClusterConfigMap, topicConfig
 	}
 }
 
-func (p *ProducerBuilder) Log(l Log) *ProducerBuilder {
-	internal.SetLog(l)
+func (p *ProducerBuilder) Log(l Logger) *ProducerBuilder {
+	internal.SetLogger(l)
 	return p
 }
 
@@ -38,5 +38,5 @@ func (p *ProducerBuilder) Interceptor(producerInterceptor ProducerInterceptor) *
 }
 
 func (p *ProducerBuilder) Initialize() (Producer, error) {
-	return internal.NewProducer(p.clusterConfigMap, p.topicConfigMap, p.interceptors)
+	return internal.NewProducer(p.clusterConfigMap, p.topicConfigMap, p.interceptors, internal.GetLogger())
 }

@@ -81,8 +81,8 @@ func (c *ConsumerBuilder) LastStepFunc(lastStepFunc func(context.Context, *Consu
 	return c
 }
 
-func (c *ConsumerBuilder) Log(l Log) *ConsumerBuilder {
-	internal.SetLog(l)
+func (c *ConsumerBuilder) Log(l Logger) *ConsumerBuilder {
+	internal.SetLogger(l)
 	return c
 }
 

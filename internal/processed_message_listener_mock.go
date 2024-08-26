@@ -46,18 +46,18 @@ func (mr *MockProcessedMessageListenerMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockProcessedMessageListener)(nil).Close))
 }
 
-// IsChannelClosed mocks base method.
-func (m *MockProcessedMessageListener) IsChannelClosed() bool {
+// IsStopped mocks base method.
+func (m *MockProcessedMessageListener) IsStopped() bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsChannelClosed")
+	ret := m.ctrl.Call(m, "IsStopped")
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
-// IsChannelClosed indicates an expected call of IsChannelClosed.
-func (mr *MockProcessedMessageListenerMockRecorder) IsChannelClosed() *gomock.Call {
+// IsStopped indicates an expected call of IsStopped.
+func (mr *MockProcessedMessageListenerMockRecorder) IsStopped() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsChannelClosed", reflect.TypeOf((*MockProcessedMessageListener)(nil).IsChannelClosed))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsStopped", reflect.TypeOf((*MockProcessedMessageListener)(nil).IsStopped))
 }
 
 // LastCommittedOffset mocks base method.

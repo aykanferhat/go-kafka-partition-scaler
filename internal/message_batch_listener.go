@@ -49,8 +49,9 @@ func (listener *batchMessageListener) Publish(message *ConsumerMessage) {
 
 func (listener *batchMessageListener) Close() {
 	listener.closeOnce.Do(func() {
+		listener.stopped = true
+		time.Sleep(150 * time.Millisecond)
 		listener.waitGroup.Wait()
-		listener.messageListenerClosed = true
 		close(listener.messageChan)
 		close(listener.processableMessageChan)
 		listener.processMessages = []*ConsumerMessage{}
@@ -72,7 +73,7 @@ func (listener *batchMessageListener) tickProcessBufferedMessagesFunc() {
 
 func (listener *batchMessageListener) listen() {
 	for message := range listener.messageChan {
-		if listener.isClosed() {
+		if listener.isStopped() {
 			continue
 		}
 		listener.processMutex.Lock()
@@ -127,6 +128,6 @@ func (listener *batchMessageListener) processBufferedMessages() {
 	listener.processMessages = []*ConsumerMessage{}
 }
 
-func (listener *batchMessageListener) isClosed() bool {
-	return listener.messageListenerClosed || listener.processedMessageListener.IsChannelClosed()
+func (listener *batchMessageListener) isStopped() bool {
+	return listener.stopped || listener.processedMessageListener.IsStopped()
 }

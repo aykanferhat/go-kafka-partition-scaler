@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"sync"
+	"time"
 )
 
 type singleMessageListener struct {
@@ -40,7 +41,7 @@ func (listener *singleMessageListener) Publish(message *ConsumerMessage) {
 
 func (listener *singleMessageListener) listen() {
 	for message := range listener.messageChan {
-		if listener.isClosed() {
+		if listener.isStopped() {
 			continue
 		}
 		listener.processMessage(message)
@@ -74,13 +75,16 @@ func (listener *singleMessageListener) processMessage(message *ConsumerMessage) 
 
 func (listener *singleMessageListener) Close() {
 	listener.closeOnce.Do(func() {
+		listener.stopped = true
+		time.Sleep(150 * time.Millisecond)
+
 		listener.waitGroup.Wait()
-		listener.messageListenerClosed = true
+
 		close(listener.messageChan)
 		close(listener.processableMessageChan)
 	})
 }
 
-func (listener *singleMessageListener) isClosed() bool {
-	return listener.messageListenerClosed || listener.processedMessageListener.IsChannelClosed()
+func (listener *singleMessageListener) isStopped() bool {
+	return listener.stopped || listener.processedMessageListener.IsStopped()
 }

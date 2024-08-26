@@ -16,7 +16,7 @@ type baseMessageVirtualListener struct {
 	initializedContext       ConsumerGroupInitializeContext
 	virtualPartition         int
 	partition                int32
-	messageListenerClosed    bool
+	stopped                  bool
 }
 
 func newBaseMessageVirtualListener(

@@ -27,6 +27,7 @@ type ConsumerGroup struct {
 	consumerStatusHandler handler.ConsumerStatusHandler
 	client                sarama.Client
 	consumerGroup         sarama.ConsumerGroup
+	logger                log.Logger
 }
 
 func NewConsumerGroup(
@@ -34,8 +35,9 @@ func NewConsumerGroup(
 	consumerGroupConfig *config.ConsumerGroupConfig,
 	messageHandler handler.MessageHandler,
 	consumerStatusHandler handler.ConsumerStatusHandler,
+	logger log.Logger,
 ) (*ConsumerGroup, error) {
-	saramaConfig, err := NewSaramaConfig(clusterConfig, consumerGroupConfig)
+	saramaConfig, err := NewSaramaConfig(clusterConfig, consumerGroupConfig, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -45,6 +47,7 @@ func NewConsumerGroup(
 		consumerGroupConfig:   consumerGroupConfig,
 		messageHandler:        messageHandler,
 		consumerStatusHandler: consumerStatusHandler,
+		logger:                logger,
 	}, nil
 }
 
@@ -67,14 +70,14 @@ func (c *ConsumerGroup) Subscribe(ctx context.Context) error {
 					break
 				}
 				if ctx.Err() != nil {
-					log.Logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, ctx.Err().Error())
+					c.logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, ctx.Err().Error())
 					break
 				}
-				log.Logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, err.Error())
+				c.logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, err.Error())
 				continue
 			}
 			if ctx.Err() != nil {
-				log.Logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, ctx.Err().Error())
+				c.logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, ctx.Err().Error())
 				break
 			}
 			if c.consumerGroupConfig.IsErrorConsumer { // we don't want to start again when rebalance or else.
@@ -84,7 +87,7 @@ func (c *ConsumerGroup) Subscribe(ctx context.Context) error {
 	}()
 	go func() {
 		for err := range consumerGroup.Errors() {
-			log.Logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, err.Error())
+			c.logger.Errorf(subscribeErr, c.consumerGroupConfig.GroupID, err.Error())
 		}
 	}()
 	c.client = client

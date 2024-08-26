@@ -54,8 +54,8 @@ func (c *ConsumerErrorBuilder) LastStepFunc(lastStepFunc func(context.Context, *
 	return c
 }
 
-func (c *ConsumerErrorBuilder) Log(l Log) *ConsumerErrorBuilder {
-	internal.SetLog(l)
+func (c *ConsumerErrorBuilder) Log(l Logger) *ConsumerErrorBuilder {
+	internal.SetLogger(l)
 	return c
 }
 

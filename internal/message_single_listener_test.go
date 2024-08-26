@@ -82,7 +82,7 @@ func Test_SingleMessageListener_ShouldListenMessage(t *testing.T) {
 	// Then
 	time.Sleep(1 * time.Second)
 	listener.Close()
-	assert.True(t, listener.messageListenerClosed)
+	assert.True(t, listener.stopped)
 }
 
 func Test_SingleMessageListener_ShouldListenRetriedMessage(t *testing.T) {
@@ -159,7 +159,7 @@ func Test_SingleMessageListener_ShouldListenRetriedMessage(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	listener.Close()
-	assert.True(t, listener.messageListenerClosed)
+	assert.True(t, listener.stopped)
 }
 
 func Test_SingleMessageListener_ShouldListenReachedMaxRetriedCount(t *testing.T) {
@@ -233,7 +233,7 @@ func Test_SingleMessageListener_ShouldListenReachedMaxRetriedCount(t *testing.T)
 	// Then
 	time.Sleep(1 * time.Second)
 	listener.Close()
-	assert.True(t, listener.messageListenerClosed)
+	assert.True(t, listener.stopped)
 }
 
 func Test_SingleMessageListener_ShouldListenMessageWhenRetryTopicNotFoundButExistsErrorTopic(t *testing.T) {
@@ -303,7 +303,7 @@ func Test_SingleMessageListener_ShouldListenMessageWhenRetryTopicNotFoundButExis
 	// Then
 	time.Sleep(1 * time.Second)
 	listener.Close()
-	assert.True(t, listener.messageListenerClosed)
+	assert.True(t, listener.stopped)
 }
 
 func Test_SingleMessageListener_ShouldListenReachedMaxRetriedCountWhenErrorTopicNotFound(t *testing.T) {
@@ -379,7 +379,7 @@ func Test_SingleMessageListener_ShouldListenReachedMaxRetriedCountWhenErrorTopic
 	// Then
 	time.Sleep(1 * time.Second)
 	listener.Close()
-	assert.True(t, listener.messageListenerClosed)
+	assert.True(t, listener.stopped)
 }
 
 func Test_SingleMessageListener_ShouldListenMessageWhenErrorAndRetryTopicNotFound(t *testing.T) {
@@ -450,5 +450,5 @@ func Test_SingleMessageListener_ShouldListenMessageWhenErrorAndRetryTopicNotFoun
 	// Then
 	time.Sleep(1 * time.Second)
 	listener.Close()
-	assert.True(t, listener.messageListenerClosed)
+	assert.True(t, listener.stopped)
 }

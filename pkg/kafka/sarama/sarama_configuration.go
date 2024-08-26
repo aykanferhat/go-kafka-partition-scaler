@@ -14,12 +14,12 @@ import (
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 )
 
-func NewSaramaConfig(clusterConfig *config.ClusterConfig, consumerGroupConfig *config.ConsumerGroupConfig) (*sarama.Config, error) {
+func NewSaramaConfig(clusterConfig *config.ClusterConfig, consumerGroupConfig *config.ConsumerGroupConfig, logger log.Logger) (*sarama.Config, error) {
 	if len(clusterConfig.ClientID) == 0 {
 		return nil, errors.New("clientId is empty in kafka config")
 	}
-	if strings.EqualFold(log.Logger.Lvl(), log.DEBUG) {
-		sarama.Logger = log.Logger
+	if strings.EqualFold(logger.Lvl(), log.DEBUG) {
+		sarama.Logger = logger
 	}
 	saramaConfig := sarama.NewConfig()
 
@@ -45,7 +45,11 @@ func NewSaramaConfig(clusterConfig *config.ClusterConfig, consumerGroupConfig *c
 		saramaConfig.Consumer.Group.Session.Timeout = consumerGroupConfig.SessionTimeout
 		saramaConfig.Consumer.Group.Heartbeat.Interval = consumerGroupConfig.HeartbeatInterval
 		saramaConfig.Consumer.MaxProcessingTime = consumerGroupConfig.MaxProcessingTime
-		saramaConfig.Consumer.Fetch.Default = int32(common.ResolveUnionIntOrStringValue(consumerGroupConfig.FetchMaxBytes))
+		fetchMaxBytes, err := common.ResolveUnionIntOrStringValue(consumerGroupConfig.FetchMaxBytes)
+		if err != nil {
+			return nil, err
+		}
+		saramaConfig.Consumer.Fetch.Default = int32(fetchMaxBytes)
 		saramaConfig.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{sarama.NewBalanceStrategySticky()}
 		saramaConfig.Consumer.Group.Rebalance.Timeout = consumerGroupConfig.RebalanceTimeout
 		saramaConfig.Consumer.Offsets.AutoCommit.Enable = true
@@ -77,7 +81,11 @@ func setProducerConfig(saramaConfig *sarama.Config, clusterConfig *config.Cluste
 	saramaConfig.Producer.RequiredAcks = saramaRequiredAcks
 	saramaConfig.Producer.Compression = compression
 	saramaConfig.Producer.Timeout = clusterConfig.ProducerConfig.Timeout
-	saramaConfig.Producer.MaxMessageBytes = common.ResolveUnionIntOrStringValue(clusterConfig.ProducerConfig.MaxMessageBytes)
+	maxMessageBytes, err := common.ResolveUnionIntOrStringValue(clusterConfig.ProducerConfig.MaxMessageBytes)
+	if err != nil {
+		return err
+	}
+	saramaConfig.Producer.MaxMessageBytes = maxMessageBytes
 	return nil
 }
 

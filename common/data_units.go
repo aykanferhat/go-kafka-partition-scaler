@@ -1,43 +1,40 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 )
 
 const (
 	MB = "1mb"
 )
 
-func ResolveUnionIntOrStringValue(input any) int {
+func ResolveUnionIntOrStringValue(input any) (int, error) {
 	switch value := input.(type) {
 	case int:
-		return value
+		return value, nil
 	case uint:
-		return int(value)
+		return int(value), nil
 	case string:
 		intValue, err := strconv.ParseInt(value, 10, 64)
 		if err == nil {
-			return int(intValue)
+			return int(intValue), nil
 		}
 		result, err := convertSizeUnitToByte(value)
 		if err != nil {
-			log.Errorf("error while convert size unit to byte, err: %v", err)
-			panic(err)
+			return 0, errors.Join(fmt.Errorf("error while convert size unit to byte, err: %v", err), err)
 		}
-		return result
+		return result, nil
 	}
-	return 0
+	return 0, nil
 }
 
 func convertSizeUnitToByte(str string) (int, error) {
 	if len(str) < 2 {
 		return 0, fmt.Errorf("invalid input: %s", str)
 	}
-
 	// Extract the numeric part of the input
 	sizeStr := str[:len(str)-2]
 	sizeStr = strings.TrimSpace(sizeStr)

@@ -2,6 +2,7 @@ package sarama
 
 import (
 	"context"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 
 	"github.com/IBM/sarama"
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/json"
@@ -14,8 +15,8 @@ type Producer struct {
 	asyncProducer sarama.AsyncProducer
 }
 
-func NewProducer(clusterConfig *config.ClusterConfig) (*Producer, error) {
-	saramaConfig, err := NewSaramaConfig(clusterConfig, nil)
+func NewProducer(clusterConfig *config.ClusterConfig, logger log.Logger) (*Producer, error) {
+	saramaConfig, err := NewSaramaConfig(clusterConfig, nil, logger)
 	if err != nil {
 		return nil, err
 	}

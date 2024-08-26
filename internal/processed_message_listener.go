@@ -12,7 +12,7 @@ type ProcessedMessageListener interface {
 	ResetTicker(duration time.Duration)
 	SetFirstConsumedMessage(topic string, partition int32, offset int64)
 	Publish(message *ConsumerMessage)
-	IsChannelClosed() bool
+	IsStopped() bool
 	Close()
 	LastCommittedOffset() int64
 }
@@ -29,7 +29,7 @@ type processedMessageListener struct {
 	topic                         string
 	messages                      []*processedMessage
 	partition                     int32
-	messageChanClosed             bool
+	stopped                       bool
 	firstConsumedMessageProcessed bool
 }
 
@@ -53,15 +53,15 @@ func (listener *processedMessageListener) ResetTicker(duration time.Duration) {
 }
 
 func (listener *processedMessageListener) Publish(message *ConsumerMessage) {
-	if listener.messageChanClosed {
+	if listener.IsStopped() {
 		return
 	}
 	listener.waitGroup.Add(1)
 	listener.messageChan <- newProcessedMessage(message)
 }
 
-func (listener *processedMessageListener) IsChannelClosed() bool {
-	return listener.messageChanClosed
+func (listener *processedMessageListener) IsStopped() bool {
+	return listener.stopped
 }
 
 func (listener *processedMessageListener) listen() {
@@ -127,9 +127,10 @@ func (listener *processedMessageListener) commitMessage(message *processedMessag
 
 func (listener *processedMessageListener) Close() {
 	listener.closeOnce.Do(func() {
-		listener.waitGroup.Wait()
+		listener.stopped = true
+		time.Sleep(150 * time.Millisecond)
 
-		listener.messageChanClosed = true
+		listener.waitGroup.Wait()
 		close(listener.messageChan)
 		listener.firstConsumedMessage = nil
 

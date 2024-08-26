@@ -80,9 +80,10 @@ func initializeTestCluster(
 			assert.NilError(t, err)
 		}
 	}
-	log.Logger = log.NewConsoleLog(log.INFO)
+	logger := log.NewConsoleLog(log.INFO)
 	producers, err := partitionscaler.NewProducerBuilderWithConfig(clusterConfigsMap, producerTopicMap).
 		Interceptor(producerInterceptor).
+		Log(logger).
 		Initialize()
 	if err != nil {
 		assert.NilError(t, err)
@@ -91,6 +92,7 @@ func initializeTestCluster(
 		LastStepFunc(lastStepFunc).
 		Interceptor(consumerInterceptor).
 		ErrorInterceptor(consumerErrorInterceptor).
+		Log(logger).
 		Initialize(ctx)
 	if err != nil {
 		assert.NilError(t, err)
@@ -139,9 +141,10 @@ func initializeErrorConsumerTestCluster(
 			}
 		}
 	}
-	log.Logger = log.NewConsoleLog(log.INFO)
+	logger := log.NewConsoleLog(log.INFO)
 	producers, err := partitionscaler.NewProducerBuilderWithConfig(clusterConfigsMap, producerTopicMap).
 		Interceptor(producerInterceptor).
+		Log(logger).
 		Initialize()
 	if err != nil {
 		assert.NilError(t, err)
@@ -150,6 +153,7 @@ func initializeErrorConsumerTestCluster(
 		Consumers(consumerLists).
 		LastStepFunc(lastStepFunc).
 		ErrorInterceptor(consumerErrorInterceptor).
+		Log(logger).
 		Initialize(ctx)
 	if err != nil {
 		assert.NilError(t, err)

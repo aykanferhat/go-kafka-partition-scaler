@@ -6,7 +6,7 @@ import partitionscaler "github.com/aykanferhat/go-kafka-partition-scaler"
 
 type Logger struct{}
 
-func NewLogger() partitionscaler.Log {
+func NewLogger() partitionscaler.Logger {
 	return &Logger{}
 }
 

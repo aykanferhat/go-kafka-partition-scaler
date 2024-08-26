@@ -8,11 +8,9 @@ import (
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/csmap"
 
 	"github.com/aykanferhat/go-kafka-partition-scaler/common"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/handler"
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
-	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
-
-	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
 )
 
 type ConsumerGroup interface {
@@ -126,17 +124,18 @@ func (c *consumerGroup) Subscribe(ctx context.Context) error {
 		mapToConsumerGroupConfig(c.initializedContext.ConsumerGroupConfig, false),
 		messageHandler,
 		c.consumerGroupStatusListener.HandleConsumerGroupStatus(),
+		logger,
 	)
 	if err != nil {
 		return err
 	}
 	if err := cg.Subscribe(ctx); err != nil {
-		log.Errorf("consumerGroup Subscribe err: %s", err.Error())
+		logger.Errorf("consumerGroup Subscribe err: %s", err.Error())
 		return err
 	}
 	c.consumerGroupStatusListener.listenConsumerStart()
 	c.cg = cg
-	log.Infof("consumerGroup Subscribed, groupId: %s", c.GetGroupID())
+	logger.Infof("consumerGroup Subscribed, groupId: %s", c.GetGroupID())
 	return nil
 }
 
@@ -149,10 +148,10 @@ func (c *consumerGroup) Unsubscribe() {
 		return
 	}
 	if err := c.cg.Unsubscribe(); err != nil {
-		log.Errorf("consumerGroup Unsubscribe err: %s", err.Error())
+		logger.Errorf("consumerGroup Unsubscribe err: %s", err.Error())
 	}
 	c.consumerGroupStatusListener.listenConsumerStop()
-	log.Infof("consumerGroup Unsubscribed, groupId: %s", c.GetGroupID())
+	logger.Infof("consumerGroup Unsubscribed, groupId: %s", c.GetGroupID())
 }
 
 func (c *consumerGroup) GetLastCommittedOffset(topic string, partition int32) int64 {

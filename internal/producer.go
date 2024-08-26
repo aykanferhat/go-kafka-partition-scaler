@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 	"strings"
 
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
@@ -32,6 +33,7 @@ func NewProducer(
 	clusterConfigMap ClusterConfigMap,
 	producerTopicConfigMap ProducerTopicConfigMap,
 	producerInterceptors []ProducerInterceptor,
+	logger log.Logger,
 ) (Producer, error) {
 	producerMap := make(map[string]kafka.Producer)
 	for cluster := range clusterConfigMap {
@@ -39,7 +41,7 @@ func NewProducer(
 		if err != nil {
 			return nil, err
 		}
-		producer, err := kafkaNewProducer(mapToClusterConfig(clusterConfig))
+		producer, err := kafkaNewProducer(mapToClusterConfig(clusterConfig), logger)
 		if err != nil {
 			return nil, err
 		}

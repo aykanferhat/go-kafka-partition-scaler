@@ -54,7 +54,7 @@ func Test_UniqueMessageListener_ShouldListenMessage(t *testing.T) {
 	}
 
 	processedMessageListener := NewMockProcessedMessageListener(controller)
-	processedMessageListener.EXPECT().IsChannelClosed().Return(false).Times(6 + 3)
+	processedMessageListener.EXPECT().IsStopped().Return(false).Times(6 + 3)
 	processedMessageListener.EXPECT().Publish(gomock.Any()).Times(6)
 
 	producer := kafka.NewMockProducer(controller)
@@ -94,5 +94,5 @@ func Test_UniqueMessageListener_ShouldListenMessage(t *testing.T) {
 	// Then
 	listener.Close()
 	assert.Equal(t, 0, len(listener.processMessages))
-	assert.Equal(t, true, listener.messageListenerClosed)
+	assert.Equal(t, true, listener.stopped)
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
 )
 
-type consumerGroupCoreHandler struct {
+type saramaConsumerGroupHandler struct {
 	session               sarama.ConsumerGroupSession
 	messageHandler        handler.MessageHandler
 	consumerStatusHandler handler.ConsumerStatusHandler
@@ -14,14 +14,14 @@ type consumerGroupCoreHandler struct {
 }
 
 func NewConsumerGroupHandler(messageHandler handler.MessageHandler, consumerStatusHandler handler.ConsumerStatusHandler) ConsumerGroupHandler {
-	return &consumerGroupCoreHandler{
+	return &saramaConsumerGroupHandler{
 		status:                false,
 		messageHandler:        messageHandler,
 		consumerStatusHandler: consumerStatusHandler,
 	}
 }
 
-func (handler *consumerGroupCoreHandler) Setup(session sarama.ConsumerGroupSession) error {
+func (handler *saramaConsumerGroupHandler) Setup(session sarama.ConsumerGroupSession) error {
 	handler.session = session
 	for topic, partitions := range session.Claims() {
 		for _, partition := range partitions {
@@ -31,7 +31,7 @@ func (handler *consumerGroupCoreHandler) Setup(session sarama.ConsumerGroupSessi
 	return nil
 }
 
-func (handler *consumerGroupCoreHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+func (handler *saramaConsumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	messagesChan := make(chan *message.ConsumerMessage)
 	go func() {
 		handler.messageHandler(claim.Topic(), claim.Partition(), messagesChan, handler.CommitMessage)
@@ -64,7 +64,7 @@ func (handler *consumerGroupCoreHandler) ConsumeClaim(session sarama.ConsumerGro
 	}
 }
 
-func (handler *consumerGroupCoreHandler) Cleanup(session sarama.ConsumerGroupSession) error {
+func (handler *saramaConsumerGroupHandler) Cleanup(session sarama.ConsumerGroupSession) error {
 	for topic, partitions := range session.Claims() {
 		for _, partition := range partitions {
 			handler.consumerStatusHandler(topic, partition, false)
@@ -73,7 +73,7 @@ func (handler *consumerGroupCoreHandler) Cleanup(session sarama.ConsumerGroupSes
 	return nil
 }
 
-func (handler *consumerGroupCoreHandler) CommitMessage(topic string, partition int32, offset int64) {
+func (handler *saramaConsumerGroupHandler) CommitMessage(topic string, partition int32, offset int64) {
 	if handler.session == nil {
 		return
 	}

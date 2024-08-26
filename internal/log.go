@@ -2,8 +2,14 @@ package internal
 
 import "github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 
-type Log = log.Log
+type Logger = log.Logger
 
-func SetLog(l Log) {
-	log.Logger = l
+var logger Logger = log.NewConsoleLog(log.ERROR)
+
+func GetLogger() Logger {
+	return logger
+}
+
+func SetLogger(l Logger) {
+	logger = l
 }

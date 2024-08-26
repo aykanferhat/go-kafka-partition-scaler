@@ -37,7 +37,7 @@ func (listener *uniqueMessageListener) scheduleProcessBufferedMessages() {
 func (listener *uniqueMessageListener) listen() {
 	go func() {
 		for message := range listener.messageChan {
-			if listener.isClosed() {
+			if listener.isStopped() {
 				continue
 			}
 			listener.processMutex.Lock()
@@ -81,14 +81,16 @@ func (listener *uniqueMessageListener) processBufferedMessages() {
 	listener.processMessages = make([]*ConsumerMessage, 0)
 }
 
-func (listener *uniqueMessageListener) isClosed() bool {
-	return listener.messageListenerClosed || listener.processedMessageListener.IsChannelClosed()
+func (listener *uniqueMessageListener) isStopped() bool {
+	return listener.stopped || listener.processedMessageListener.IsStopped()
 }
 
 func (listener *uniqueMessageListener) Close() {
 	listener.closeOnce.Do(func() {
+		listener.stopped = true
+		time.Sleep(150 * time.Millisecond)
+
 		listener.messageListener.Close()
-		listener.messageListenerClosed = true
 		close(listener.messageChan)
 		close(listener.processableMessageChan)
 		listener.processBufferedMessageTicker.Stop()

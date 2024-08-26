@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 	"testing"
 
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
@@ -54,7 +55,7 @@ func Test_Producer_ShouldReturnProducerWhenGetProducer(t *testing.T) {
 	old := kafkaNewProducer
 	defer func() { kafkaNewProducer = old }()
 
-	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig) (kafka.Producer, error) {
+	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig, logger log.Logger) (kafka.Producer, error) {
 		if clusterConfig.ClientID == "client1" {
 			return cluster1Producer, nil
 		}
@@ -64,6 +65,7 @@ func Test_Producer_ShouldReturnProducerWhenGetProducer(t *testing.T) {
 		clusterConfigMap,
 		producerTopicConfigMap,
 		[]ProducerInterceptor{},
+		logger,
 	)
 	assert.Nil(t, err)
 
@@ -92,6 +94,7 @@ func Test_Producer_throwErrorWhenProducerNotFound(t *testing.T) {
 		clusterConfigMap,
 		producerTopicConfigMap,
 		[]ProducerInterceptor{},
+		logger,
 	)
 
 	assert.Nil(t, err)
@@ -133,7 +136,7 @@ func Test_Producer_ShouldReturnProducerTopic(t *testing.T) {
 	old := kafkaNewProducer
 	defer func() { kafkaNewProducer = old }()
 
-	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig) (kafka.Producer, error) {
+	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig, logger log.Logger) (kafka.Producer, error) {
 		return cluster1Producer, nil
 	}
 
@@ -141,6 +144,7 @@ func Test_Producer_ShouldReturnProducerTopic(t *testing.T) {
 		clusterConfigMap,
 		producerTopicConfigMap,
 		[]ProducerInterceptor{},
+		logger,
 	)
 	assert.Nil(t, err)
 
@@ -166,6 +170,7 @@ func Test_Producer_throwErrorWhenProducerTopicNotFound(t *testing.T) {
 		clusterConfigMap,
 		producerTopicConfigMap,
 		[]ProducerInterceptor{},
+		logger,
 	)
 	assert.Nil(t, err)
 
@@ -216,7 +221,7 @@ func Test_Producer_ShouldProduceAsyncMessage(t *testing.T) {
 	old := kafkaNewProducer
 	defer func() { kafkaNewProducer = old }()
 
-	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig) (kafka.Producer, error) {
+	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig, logger log.Logger) (kafka.Producer, error) {
 		return cluster1Producer, nil
 	}
 
@@ -230,6 +235,7 @@ func Test_Producer_ShouldProduceAsyncMessage(t *testing.T) {
 		clusterConfigMap,
 		producerTopicConfigMap,
 		[]ProducerInterceptor{producerInterceptor},
+		logger,
 	)
 	assert.Nil(t, err)
 
@@ -268,7 +274,7 @@ func Test_Producer_ShouldProduceAsyncBulkMessage(t *testing.T) {
 	old := kafkaNewProducer
 	defer func() { kafkaNewProducer = old }()
 
-	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig) (kafka.Producer, error) {
+	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig, logger log.Logger) (kafka.Producer, error) {
 		return cluster1Producer, nil
 	}
 
@@ -296,6 +302,7 @@ func Test_Producer_ShouldProduceAsyncBulkMessage(t *testing.T) {
 		[]ProducerInterceptor{
 			producerInterceptor,
 		},
+		logger,
 	)
 	assert.Nil(t, err)
 
@@ -347,7 +354,7 @@ func Test_Producer_ShouldProduceSyncMessage(t *testing.T) {
 	old := kafkaNewProducer
 	defer func() { kafkaNewProducer = old }()
 
-	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig) (kafka.Producer, error) {
+	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig, logger log.Logger) (kafka.Producer, error) {
 		return cluster1Producer, nil
 	}
 
@@ -361,6 +368,7 @@ func Test_Producer_ShouldProduceSyncMessage(t *testing.T) {
 		[]ProducerInterceptor{
 			producerInterceptor,
 		},
+		logger,
 	)
 	assert.Nil(t, err)
 
@@ -405,7 +413,7 @@ func Test_Producer_ShouldProduceSyncBulkMessage(t *testing.T) {
 	old := kafkaNewProducer
 	defer func() { kafkaNewProducer = old }()
 
-	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig) (kafka.Producer, error) {
+	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig, logger log.Logger) (kafka.Producer, error) {
 		return cluster1Producer, nil
 	}
 
@@ -427,6 +435,7 @@ func Test_Producer_ShouldProduceSyncBulkMessage(t *testing.T) {
 		[]ProducerInterceptor{
 			producerInterceptor,
 		},
+		logger,
 	)
 	assert.Nil(t, err)
 
@@ -485,7 +494,7 @@ func Test_Producer_ShouldProduceSyncCustomMessage(t *testing.T) {
 	old := kafkaNewProducer
 	defer func() { kafkaNewProducer = old }()
 
-	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig) (kafka.Producer, error) {
+	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig, logger log.Logger) (kafka.Producer, error) {
 		return cluster1Producer, nil
 	}
 
@@ -495,6 +504,7 @@ func Test_Producer_ShouldProduceSyncCustomMessage(t *testing.T) {
 		[]ProducerInterceptor{
 			producerInterceptor,
 		},
+		logger,
 	)
 	assert.Nil(t, err)
 
@@ -535,7 +545,7 @@ func Test_Producer_ShouldProduceSyncCustomBulkMessage(t *testing.T) {
 	old := kafkaNewProducer
 	defer func() { kafkaNewProducer = old }()
 
-	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig) (kafka.Producer, error) {
+	kafkaNewProducer = func(clusterConfig *kafka.ClusterConfig, logger log.Logger) (kafka.Producer, error) {
 		return cluster1Producer, nil
 	}
 
@@ -578,6 +588,7 @@ func Test_Producer_ShouldProduceSyncCustomBulkMessage(t *testing.T) {
 		[]ProducerInterceptor{
 			producerInterceptor,
 		},
+		logger,
 	)
 	assert.Nil(t, err)
 

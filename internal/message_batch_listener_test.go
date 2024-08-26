@@ -57,7 +57,7 @@ func Test_BatchMessageListener_ShouldListenBatchMessage(t *testing.T) {
 	}
 
 	processedMessageListener := NewMockProcessedMessageListener(controller)
-	processedMessageListener.EXPECT().IsChannelClosed().Return(false).Times(3)
+	processedMessageListener.EXPECT().IsStopped().Return(false).Times(3)
 	for _, msg := range firstMessagesList {
 		processedMessageListener.EXPECT().Publish(msg).Times(1)
 	}
@@ -101,7 +101,7 @@ func Test_BatchMessageListener_ShouldListenBatchMessage(t *testing.T) {
 	time.Sleep(2 * time.Second)
 	listener.Close()
 	assert.Equal(t, 0, len(listener.processMessages))
-	assert.Equal(t, true, listener.messageListenerClosed)
+	assert.Equal(t, true, listener.stopped)
 }
 
 func Test_BatchMessageListener_ShouldListenBatchErrorMessageAndSendRetryTopic(t *testing.T) {
@@ -147,7 +147,7 @@ func Test_BatchMessageListener_ShouldListenBatchErrorMessageAndSendRetryTopic(t 
 	}
 
 	processedMessageListener := NewMockProcessedMessageListener(controller)
-	processedMessageListener.EXPECT().IsChannelClosed().Return(false).Times(2)
+	processedMessageListener.EXPECT().IsStopped().Return(false).Times(2)
 	for _, msg := range messages {
 		processedMessageListener.EXPECT().Publish(msg).Times(1)
 	}
@@ -190,7 +190,7 @@ func Test_BatchMessageListener_ShouldListenBatchErrorMessageAndSendRetryTopic(t 
 		}
 	}
 	listener.Close()
-	assert.Equal(t, true, listener.messageListenerClosed)
+	assert.Equal(t, true, listener.stopped)
 }
 
 func Test_BatchMessageListener_ShouldListenBatchErrorMessageAndDoNotSendRetryTopic(t *testing.T) {
@@ -243,7 +243,7 @@ func Test_BatchMessageListener_ShouldListenBatchErrorMessageAndDoNotSendRetryTop
 	producer.EXPECT().ProduceSync(gomock.Any(), gomock.Any()).Return(errors.New("SendMessages error")).Times(2)
 
 	processedMessageListener := NewMockProcessedMessageListener(controller)
-	processedMessageListener.EXPECT().IsChannelClosed().Return(false).Times(2)
+	processedMessageListener.EXPECT().IsStopped().Return(false).Times(2)
 	for _, msg := range messages {
 		processedMessageListener.EXPECT().Publish(msg).Times(1)
 	}
@@ -279,7 +279,7 @@ func Test_BatchMessageListener_ShouldListenBatchErrorMessageAndDoNotSendRetryTop
 		}
 	}
 	listener.Close()
-	assert.Equal(t, true, listener.messageListenerClosed)
+	assert.Equal(t, true, listener.stopped)
 }
 
 func Test_BatchMessageListener_ShouldListenBatchContextDeadlineMessageAndSendRetryTopic(t *testing.T) {
@@ -332,7 +332,7 @@ func Test_BatchMessageListener_ShouldListenBatchContextDeadlineMessageAndSendRet
 	producer.EXPECT().ProduceSync(gomock.Any(), gomock.Any()).Return(nil).Times(2)
 
 	processedMessageListener := NewMockProcessedMessageListener(controller)
-	processedMessageListener.EXPECT().IsChannelClosed().Return(false).Times(2)
+	processedMessageListener.EXPECT().IsStopped().Return(false).Times(2)
 	processedMessageListener.EXPECT().Publish(firstMessage).Times(1)
 	processedMessageListener.EXPECT().Publish(secondMessage).Times(1)
 
@@ -367,7 +367,7 @@ func Test_BatchMessageListener_ShouldListenBatchContextDeadlineMessageAndSendRet
 		}
 	}
 	listener.Close()
-	assert.Equal(t, true, listener.messageListenerClosed)
+	assert.Equal(t, true, listener.stopped)
 }
 
 func Test_BatchMessageListener_ShouldNotListenMessageWhenChannelIsClosed(t *testing.T) {
@@ -409,7 +409,7 @@ func Test_BatchMessageListener_ShouldNotListenMessageWhenChannelIsClosed(t *test
 	producer.EXPECT().ProduceSync(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 	processedMessageListener := NewMockProcessedMessageListener(controller)
-	processedMessageListener.EXPECT().IsChannelClosed().Return(false).AnyTimes()
+	processedMessageListener.EXPECT().IsStopped().Return(false).AnyTimes()
 	processedMessageListener.EXPECT().Publish(gomock.Any()).AnyTimes()
 
 	initializeContext := ConsumerGroupInitializeContext{
@@ -441,7 +441,7 @@ func Test_BatchMessageListener_ShouldNotListenMessageWhenChannelIsClosed(t *test
 
 	// Then
 	listener.Close()
-	assert.Equal(t, true, listener.messageListenerClosed)
+	assert.Equal(t, true, listener.stopped)
 }
 
 func Test_BatchMessageListener_ShouldListenBatchMessageWhenThereIsNoMessage(t *testing.T) {
@@ -502,7 +502,7 @@ func Test_BatchMessageListener_ShouldListenBatchMessageWhenThereIsNoMessage(t *t
 
 	// Then
 	listener.Close()
-	assert.Equal(t, true, listener.messageListenerClosed)
+	assert.Equal(t, true, listener.stopped)
 }
 
 func generateTestConsumerMessageForListener(key string, value string, offset int64, virtualPartition int) *ConsumerMessage {

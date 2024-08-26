@@ -1,15 +1,12 @@
 package log
 
-import (
-	"fmt"
-)
-
 const (
-	INFO  string = "INFO"
 	DEBUG string = "DEBUG"
+	INFO  string = "INFO"
+	ERROR string = "ERROR"
 )
 
-type Log interface {
+type Logger interface {
 	Infof(format string, args ...interface{})
 	Debugf(format string, args ...interface{})
 	Errorf(format string, args ...interface{})
@@ -17,14 +14,4 @@ type Log interface {
 	Printf(format string, v ...interface{})
 	Println(v ...interface{})
 	Lvl() string
-}
-
-var Logger Log = NewConsoleLog(INFO)
-
-func Infof(format string, args ...interface{}) {
-	Logger.Printf(fmt.Sprintf(format, args...))
-}
-
-func Errorf(format string, args ...interface{}) {
-	Logger.Printf(fmt.Sprintf(format, args...))
 }
