@@ -25,10 +25,6 @@ type ConsumerGroupStatus struct {
 	Partition int32
 }
 
-func (t ConsumerGroupStatus) GetKey() string {
-	return getKey(t.Topic, t.Partition)
-}
-
 func (t ConsumerGroupStatus) IsStarted() bool {
 	return t.Status == StartedListening || t.Status == ListenedMessage
 }
@@ -39,8 +35,21 @@ type ConsumerGroupStatusListener struct {
 	stoppedChan            chan bool
 }
 
-func (listener *ConsumerGroupStatusListener) Listen(status *ConsumerGroupStatus) {
-	listener.consumerGroupStatusMap.Store(status.GetKey(), status)
+func (listener *ConsumerGroupStatusListener) Change(key, topic string, partition int32, offset int64, status Status) {
+	existsStatus, exists := listener.consumerGroupStatusMap.Load(key)
+	if !exists {
+		listener.consumerGroupStatusMap.Store(key, &ConsumerGroupStatus{
+			Time:      time.Now(),
+			Topic:     topic,
+			Status:    status,
+			Offset:    offset,
+			Partition: partition,
+		})
+		return
+	}
+	existsStatus.Status = status
+	existsStatus.Offset = offset
+	listener.consumerGroupStatusMap.Store(key, existsStatus)
 }
 
 func (listener *ConsumerGroupStatusListener) WaitConsumerStart() {
@@ -57,7 +66,7 @@ func (listener *ConsumerGroupStatusListener) HandleConsumerGroupStatus() kafka.C
 		if status {
 			s = AssignedTopicPartition
 		}
-		listener.Listen(&ConsumerGroupStatus{Time: time.Now(), Topic: topic, Status: s, Partition: partition, Offset: -2})
+		listener.Change(getKey(topic, partition), topic, partition, -2, s)
 	}
 }
 

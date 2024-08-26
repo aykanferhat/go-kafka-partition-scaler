@@ -6,8 +6,6 @@ import (
 
 	"github.com/aykanferhat/go-kafka-partition-scaler/common"
 
-	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,27 +16,23 @@ func Test_Util_ShouldCalculateVirtualPartitionSameResultWhenKeySame(t *testing.T
 	totalVirtualPartition := 10
 
 	message1 := &ConsumerMessage{
-		ConsumerMessage: &message.ConsumerMessage{
-			Headers:   nil,
-			Timestamp: time.Now(),
-			Key:       common.ToByte(id1),
-			Value:     common.ToByte("value"),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    100,
-		},
+		Headers:   nil,
+		Timestamp: time.Now(),
+		Key:       common.ToByte(id1),
+		Value:     common.ToByte("value"),
+		Topic:     topic,
+		Partition: 0,
+		Offset:    100,
 	}
 
 	message2 := &ConsumerMessage{
-		ConsumerMessage: &message.ConsumerMessage{
-			Headers:   nil,
-			Timestamp: time.Now(),
-			Key:       common.ToByte(id2),
-			Value:     common.ToByte("value"),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    101,
-		},
+		Headers:   nil,
+		Timestamp: time.Now(),
+		Key:       common.ToByte(id2),
+		Value:     common.ToByte("value"),
+		Topic:     topic,
+		Partition: 0,
+		Offset:    101,
 	}
 
 	// When
@@ -55,15 +49,13 @@ func Test_Util_ShouldCalculateVirtualPartitionRandomWhenKeyIsEmpty(t *testing.T)
 	totalVirtualPartition := 10
 
 	msg := &ConsumerMessage{
-		ConsumerMessage: &message.ConsumerMessage{
-			Headers:   nil,
-			Timestamp: time.Now(),
-			Key:       common.ToByte(id),
-			Value:     common.ToByte("value"),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    100,
-		},
+		Headers:   nil,
+		Timestamp: time.Now(),
+		Key:       common.ToByte(id),
+		Value:     common.ToByte("value"),
+		Topic:     topic,
+		Partition: 0,
+		Offset:    100,
 	}
 
 	// When

@@ -4,17 +4,16 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/aykanferhat/go-kafka-partition-scaler/common"
-	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
+
+	"github.com/aykanferhat/go-kafka-partition-scaler/common"
 )
 
-type ConsumerMessage struct {
-	*kafka.ConsumerMessage
-	Tracer           string
-	GroupID          string
-	VirtualPartition int
-}
+type (
+	ConsumerMessage message.ConsumerMessage
+	ProducerMessage = message.ProducerMessage
+	Header          = message.Header
+)
 
 func getRetriedCount(message *ConsumerMessage) int {
 	return getHeaderIntValue(message, common.RetryTopicCountKey) + 1
@@ -58,7 +57,7 @@ func getHeaderValue(message *ConsumerMessage, key common.ContextKey) []byte {
 	return nil
 }
 
-func headersForRetry(message *ConsumerMessage, errorMessage string) []kafka.Header {
+func headersForRetry(message *ConsumerMessage, errorMessage string) []message.Header {
 	messageHeaderMap := make(map[common.ContextKey][]byte)
 	for _, header := range message.Headers {
 		messageHeaderMap[common.ContextKey(header.Key)] = header.Value
@@ -69,7 +68,7 @@ func headersForRetry(message *ConsumerMessage, errorMessage string) []kafka.Head
 	return mapToHeaderArray(messageHeaderMap)
 }
 
-func headersForError(message *ConsumerMessage, errorMessage string) []kafka.Header {
+func headersForError(message *ConsumerMessage, errorMessage string) []message.Header {
 	messageHeaderMap := make(map[common.ContextKey][]byte)
 	for _, header := range message.Headers {
 		messageHeaderMap[common.ContextKey(header.Key)] = header.Value
@@ -80,7 +79,7 @@ func headersForError(message *ConsumerMessage, errorMessage string) []kafka.Head
 	return mapToHeaderArray(messageHeaderMap)
 }
 
-func headersFromRetryToRetry(message *ConsumerMessage, errorMessage string, retriedCount int) []kafka.Header {
+func headersFromRetryToRetry(message *ConsumerMessage, errorMessage string, retriedCount int) []message.Header {
 	messageHeaderMap := make(map[common.ContextKey][]byte)
 	for _, header := range message.Headers {
 		messageHeaderMap[common.ContextKey(header.Key)] = header.Value
@@ -91,7 +90,7 @@ func headersFromRetryToRetry(message *ConsumerMessage, errorMessage string, retr
 	return mapToHeaderArray(messageHeaderMap)
 }
 
-func headersFromRetryToError(message *ConsumerMessage, errorMessage string) []kafka.Header {
+func headersFromRetryToError(message *ConsumerMessage, errorMessage string) []message.Header {
 	messageHeaderMap := make(map[common.ContextKey][]byte)
 	for _, header := range message.Headers {
 		messageHeaderMap[common.ContextKey(header.Key)] = header.Value
@@ -105,7 +104,7 @@ func headersFromRetryToError(message *ConsumerMessage, errorMessage string) []ka
 	return mapToHeaderArray(messageHeaderMap)
 }
 
-func headersFromErrorToRetry(message *ConsumerMessage) []kafka.Header {
+func headersFromErrorToRetry(message *ConsumerMessage) []message.Header {
 	messageHeaderMap := make(map[common.ContextKey][]byte)
 	for _, header := range message.Headers {
 		messageHeaderMap[common.ContextKey(header.Key)] = header.Value
@@ -115,7 +114,7 @@ func headersFromErrorToRetry(message *ConsumerMessage) []kafka.Header {
 	return mapToHeaderArray(messageHeaderMap)
 }
 
-func headersForShovel(message *ConsumerMessage) []kafka.Header {
+func headersForShovel(message *ConsumerMessage) []message.Header {
 	messageHeaderMap := make(map[common.ContextKey][]byte)
 	for _, header := range message.Headers {
 		messageHeaderMap[common.ContextKey(header.Key)] = header.Value
@@ -125,7 +124,7 @@ func headersForShovel(message *ConsumerMessage) []kafka.Header {
 	return mapToHeaderArray(messageHeaderMap)
 }
 
-func mapToHeaderArray(messageHeaderMap map[common.ContextKey][]byte) []kafka.Header {
+func mapToHeaderArray(messageHeaderMap map[common.ContextKey][]byte) []message.Header {
 	headers := make([]message.Header, 0)
 	for key, bytes := range messageHeaderMap {
 		headers = append(headers, message.Header{

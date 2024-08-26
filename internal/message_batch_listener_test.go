@@ -314,7 +314,7 @@ func Test_BatchMessageListener_ShouldListenBatchContextDeadlineMessageAndSendRet
 
 	batchConsumer := NewMockBatchConsumer(controller)
 	batchConsumer.EXPECT().Consume(gomock.Any(), gomock.Any()).
-		DoAndReturn(func(ctx context.Context, messages []*ConsumerMessage) map[ConsumerMessage]error {
+		DoAndReturn(func(ctx context.Context, messages []*ConsumerMessage) map[*ConsumerMessage]error {
 			time.Sleep(2 * time.Second)
 			return nil
 		})
@@ -395,7 +395,7 @@ func Test_BatchMessageListener_ShouldNotListenMessageWhenChannelIsClosed(t *test
 
 	batchConsumer := NewMockBatchConsumer(controller)
 	batchConsumer.EXPECT().Consume(gomock.Any(), gomock.Any()).
-		DoAndReturn(func(ctx context.Context, messages []*ConsumerMessage) map[ConsumerMessage]error {
+		DoAndReturn(func(ctx context.Context, messages []*ConsumerMessage) map[*ConsumerMessage]error {
 			time.Sleep(2 * time.Second)
 			return nil
 		}).AnyTimes()
@@ -507,35 +507,31 @@ func Test_BatchMessageListener_ShouldListenBatchMessageWhenThereIsNoMessage(t *t
 
 func generateTestConsumerMessageForListener(key string, value string, offset int64, virtualPartition int) *ConsumerMessage {
 	return &ConsumerMessage{
-		ConsumerMessage: &message.ConsumerMessage{
-			Headers:   make([]message.Header, 0),
-			Timestamp: time.Time{},
-			Key:       common.ToByte(key),
-			Value:     common.ToByte(value),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    offset,
-		},
+		Headers:          make([]message.Header, 0),
+		Timestamp:        time.Time{},
+		Key:              common.ToByte(key),
+		Value:            common.ToByte(value),
+		Topic:            topic,
+		Partition:        0,
+		Offset:           offset,
 		VirtualPartition: virtualPartition,
 	}
 }
 
 func generateTestConsumerMessageWithHeaderForListener(topic string, key string, value string, headerKey string, headerValue string, offset int64, virtualPartition int) *ConsumerMessage {
 	return &ConsumerMessage{
-		ConsumerMessage: &message.ConsumerMessage{
-			Headers: []message.Header{
-				{
-					Key:   common.ToByte(headerKey),
-					Value: common.ToByte(headerValue),
-				},
+		Headers: []message.Header{
+			{
+				Key:   common.ToByte(headerKey),
+				Value: common.ToByte(headerValue),
 			},
-			Timestamp: time.Time{},
-			Key:       common.ToByte(key),
-			Value:     common.ToByte(value),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    offset,
 		},
+		Timestamp:        time.Time{},
+		Key:              common.ToByte(key),
+		Value:            common.ToByte(value),
+		Topic:            topic,
+		Partition:        0,
+		Offset:           offset,
 		VirtualPartition: virtualPartition,
 	}
 }

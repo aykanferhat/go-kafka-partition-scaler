@@ -4,28 +4,27 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
+
 	"github.com/aykanferhat/go-kafka-partition-scaler/common"
-	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_ConsumerMessage_ShouldGetRetryCount(t *testing.T) {
 	// Given
 	msg := &ConsumerMessage{
-		ConsumerMessage: &kafka.ConsumerMessage{
-			Headers: []kafka.Header{
-				{
-					Key:   common.ToByte(common.RetryTopicCountKey.String()),
-					Value: common.ToByte("1"),
-				},
+		Headers: []message.Header{
+			{
+				Key:   common.ToByte(common.RetryTopicCountKey.String()),
+				Value: common.ToByte("1"),
 			},
-			Timestamp: time.Time{},
-			Key:       common.ToByte("key"),
-			Value:     common.ToByte("value"),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    0,
 		},
+		Timestamp:        time.Time{},
+		Key:              common.ToByte("key"),
+		Value:            common.ToByte("value"),
+		Topic:            topic,
+		Partition:        0,
+		Offset:           0,
 		VirtualPartition: 0,
 	}
 
@@ -39,18 +38,15 @@ func Test_ConsumerMessage_ShouldGetRetryCount(t *testing.T) {
 func Test_ConsumerMessage_ShouldGetInitialRetryCount(t *testing.T) {
 	// Given
 	msg := &ConsumerMessage{
-		ConsumerMessage: &kafka.ConsumerMessage{
-			Headers:   []kafka.Header{},
-			Timestamp: time.Time{},
-			Key:       common.ToByte("key"),
-			Value:     common.ToByte("value"),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    0,
-		},
+		Headers:          []message.Header{},
+		Timestamp:        time.Time{},
+		Key:              common.ToByte("key"),
+		Value:            common.ToByte("value"),
+		Topic:            topic,
+		Partition:        0,
+		Offset:           0,
 		VirtualPartition: 0,
 	}
-
 	// When
 	retryCount := getRetriedCount(msg)
 
@@ -61,20 +57,18 @@ func Test_ConsumerMessage_ShouldGetInitialRetryCount(t *testing.T) {
 func Test_ConsumerMessage_ShouldGetErrorCount(t *testing.T) {
 	// Given
 	msg := &ConsumerMessage{
-		ConsumerMessage: &kafka.ConsumerMessage{
-			Headers: []kafka.Header{
-				{
-					Key:   common.ToByte(common.ErrorTopicCountKey.String()),
-					Value: common.ToByte("1"),
-				},
+		Headers: []message.Header{
+			{
+				Key:   common.ToByte(common.ErrorTopicCountKey.String()),
+				Value: common.ToByte("1"),
 			},
-			Timestamp: time.Time{},
-			Key:       common.ToByte("key"),
-			Value:     common.ToByte("value"),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    0,
 		},
+		Timestamp:        time.Time{},
+		Key:              common.ToByte("key"),
+		Value:            common.ToByte("value"),
+		Topic:            topic,
+		Partition:        0,
+		Offset:           0,
 		VirtualPartition: 0,
 	}
 
@@ -88,15 +82,13 @@ func Test_ConsumerMessage_ShouldGetErrorCount(t *testing.T) {
 func Test_ConsumerMessage_ShouldGetInitialErrorCount(t *testing.T) {
 	// Given
 	msg := &ConsumerMessage{
-		ConsumerMessage: &kafka.ConsumerMessage{
-			Headers:   []kafka.Header{},
-			Timestamp: time.Time{},
-			Key:       common.ToByte("key"),
-			Value:     common.ToByte("value"),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    0,
-		},
+		Headers:          []message.Header{},
+		Timestamp:        time.Time{},
+		Key:              common.ToByte("key"),
+		Value:            common.ToByte("value"),
+		Topic:            topic,
+		Partition:        0,
+		Offset:           0,
 		VirtualPartition: 0,
 	}
 
@@ -110,20 +102,18 @@ func Test_ConsumerMessage_ShouldGetInitialErrorCount(t *testing.T) {
 func Test_ConsumerMessage_ShouldGetErrorMessage(t *testing.T) {
 	// Given
 	msg := &ConsumerMessage{
-		ConsumerMessage: &kafka.ConsumerMessage{
-			Headers: []kafka.Header{
-				{
-					Key:   common.ToByte(common.ErrorMessageKey.String()),
-					Value: common.ToByte("error"),
-				},
+		Headers: []message.Header{
+			{
+				Key:   common.ToByte(common.ErrorMessageKey.String()),
+				Value: common.ToByte("error"),
 			},
-			Timestamp: time.Time{},
-			Key:       common.ToByte("key"),
-			Value:     common.ToByte("value"),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    0,
 		},
+		Timestamp:        time.Time{},
+		Key:              common.ToByte("key"),
+		Value:            common.ToByte("value"),
+		Topic:            topic,
+		Partition:        0,
+		Offset:           0,
 		VirtualPartition: 0,
 	}
 
@@ -137,15 +127,13 @@ func Test_ConsumerMessage_ShouldGetErrorMessage(t *testing.T) {
 func Test_ConsumerMessage_ShouldGetEmptyErrorMessage(t *testing.T) {
 	// Given
 	msg := &ConsumerMessage{
-		ConsumerMessage: &kafka.ConsumerMessage{
-			Headers:   []kafka.Header{},
-			Timestamp: time.Time{},
-			Key:       common.ToByte("key"),
-			Value:     common.ToByte("value"),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    0,
-		},
+		Headers:          []message.Header{},
+		Timestamp:        time.Time{},
+		Key:              common.ToByte("key"),
+		Value:            common.ToByte("value"),
+		Topic:            topic,
+		Partition:        0,
+		Offset:           0,
 		VirtualPartition: 0,
 	}
 
@@ -159,20 +147,18 @@ func Test_ConsumerMessage_ShouldGetEmptyErrorMessage(t *testing.T) {
 func Test_ConsumerMessage_ShouldGetTargetTopic(t *testing.T) {
 	// Given
 	msg := &ConsumerMessage{
-		ConsumerMessage: &kafka.ConsumerMessage{
-			Headers: []kafka.Header{
-				{
-					Key:   common.ToByte(common.TargetTopicKey.String()),
-					Value: common.ToByte("target-topic"),
-				},
+		Headers: []message.Header{
+			{
+				Key:   common.ToByte(common.TargetTopicKey.String()),
+				Value: common.ToByte("target-topic"),
 			},
-			Timestamp: time.Time{},
-			Key:       common.ToByte("key"),
-			Value:     common.ToByte("value"),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    0,
 		},
+		Timestamp:        time.Time{},
+		Key:              common.ToByte("key"),
+		Value:            common.ToByte("value"),
+		Topic:            topic,
+		Partition:        0,
+		Offset:           0,
 		VirtualPartition: 0,
 	}
 
@@ -186,15 +172,13 @@ func Test_ConsumerMessage_ShouldGetTargetTopic(t *testing.T) {
 func Test_ConsumerMessage_ShouldGetEmptyTargetTopic(t *testing.T) {
 	// Given
 	msg := &ConsumerMessage{
-		ConsumerMessage: &kafka.ConsumerMessage{
-			Headers:   []kafka.Header{},
-			Timestamp: time.Time{},
-			Key:       common.ToByte("key"),
-			Value:     common.ToByte("value"),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    0,
-		},
+		Headers:          []message.Header{},
+		Timestamp:        time.Time{},
+		Key:              common.ToByte("key"),
+		Value:            common.ToByte("value"),
+		Topic:            topic,
+		Partition:        0,
+		Offset:           0,
 		VirtualPartition: 0,
 	}
 
@@ -208,32 +192,30 @@ func Test_ConsumerMessage_ShouldGetEmptyTargetTopic(t *testing.T) {
 func Test_ConsumerMessage_ShouldGetHeadersForRetryToError(t *testing.T) {
 	// Given
 	msg := &ConsumerMessage{
-		ConsumerMessage: &kafka.ConsumerMessage{
-			Headers: []kafka.Header{
-				{
-					Key:   common.ToByte("key"),
-					Value: common.ToByte("value"),
-				},
-				{
-					Key:   common.ToByte(common.ErrorMessageKey.String()),
-					Value: common.ToByte("old error"),
-				},
-				{
-					Key:   common.ToByte(common.RetryTopicCountKey.String()),
-					Value: common.ToByte("3"),
-				},
-				{
-					Key:   common.ToByte(common.ErrorTopicCountKey.String()),
-					Value: common.ToByte("1"),
-				},
+		Headers: []message.Header{
+			{
+				Key:   common.ToByte("key"),
+				Value: common.ToByte("value"),
 			},
-			Timestamp: time.Time{},
-			Key:       common.ToByte("key"),
-			Value:     common.ToByte("value"),
-			Topic:     retryTopic,
-			Partition: 0,
-			Offset:    0,
+			{
+				Key:   common.ToByte(common.ErrorMessageKey.String()),
+				Value: common.ToByte("old error"),
+			},
+			{
+				Key:   common.ToByte(common.RetryTopicCountKey.String()),
+				Value: common.ToByte("3"),
+			},
+			{
+				Key:   common.ToByte(common.ErrorTopicCountKey.String()),
+				Value: common.ToByte("1"),
+			},
 		},
+		Timestamp:        time.Time{},
+		Key:              common.ToByte("key"),
+		Value:            common.ToByte("value"),
+		Topic:            retryTopic,
+		Partition:        0,
+		Offset:           0,
 		VirtualPartition: 0,
 	}
 

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
+
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
 )
 
@@ -102,7 +104,7 @@ func processConsumedRetryTopicMessageError(ctx context.Context, message *Consume
 	}
 }
 
-func sendMessageToTopic(producer kafka.Producer, msg *ConsumerMessage, topic string, headers []kafka.Header) error {
+func sendMessageToTopic(producer kafka.Producer, msg *ConsumerMessage, topic string, headers []message.Header) error {
 	return producer.ProduceSync(context.Background(), &ProducerMessage{
 		Headers:  headers,
 		Topic:    topic,

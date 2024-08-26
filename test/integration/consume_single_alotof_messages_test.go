@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/IBM/sarama"
 
@@ -106,6 +107,7 @@ func Test_SingleConsumer_ShouldConsumeALotOfMessages(t *testing.T) {
 	go func() {
 		for {
 			if len(consumedMessages) != len(produceMessages) {
+				time.Sleep(150 * time.Millisecond)
 				continue
 			}
 

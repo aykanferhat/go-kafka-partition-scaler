@@ -46,13 +46,11 @@ func Test_ProcessedMessageListener_shouldMarkProcessedMessages(t *testing.T) {
 
 func generateTestConsumerMessageForProcessedMessageListener(offset int64) *ConsumerMessage {
 	return &ConsumerMessage{
-		ConsumerMessage: &message.ConsumerMessage{
-			Headers:   make([]message.Header, 0),
-			Timestamp: time.Time{},
-			Topic:     topic,
-			Partition: 0,
-			Offset:    offset,
-		},
+		Headers:          make([]message.Header, 0),
+		Timestamp:        time.Time{},
+		Topic:            topic,
+		Partition:        0,
+		Offset:           offset,
 		VirtualPartition: 0,
 	}
 }

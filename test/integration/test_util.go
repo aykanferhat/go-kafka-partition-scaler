@@ -12,7 +12,6 @@ import (
 
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/log"
 
-	"github.com/testcontainers/testcontainers-go"
 	containerKafka "github.com/testcontainers/testcontainers-go/modules/kafka"
 	"gotest.tools/v3/assert"
 )
@@ -47,9 +46,9 @@ func initializeTestCluster(
 	lastStepFunc func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error),
 	partition int32,
 ) (*containerKafka.KafkaContainer, partitionscaler.Producer, map[string]partitionscaler.ConsumerGroup, map[string]partitionscaler.ErrorConsumerGroup) {
-	kafkaContainer, err := containerKafka.RunContainer(ctx,
+	kafkaContainer, err := containerKafka.Run(ctx,
+		"confluentinc/confluent-local:7.7.0",
 		containerKafka.WithClusterID("test-cluster"),
-		testcontainers.WithImage("confluentinc/confluent-local:7.5.0"),
 	)
 	if err != nil {
 		assert.NilError(t, err)
@@ -112,9 +111,9 @@ func initializeErrorConsumerTestCluster(
 	producerInterceptor partitionscaler.ProducerInterceptor,
 	lastStepFunc func(ctx context.Context, message *partitionscaler.ConsumerMessage, err error),
 ) (*containerKafka.KafkaContainer, partitionscaler.Producer, map[string]partitionscaler.ErrorConsumerGroup) {
-	kafkaContainer, err := containerKafka.RunContainer(ctx,
+	kafkaContainer, err := containerKafka.Run(ctx,
+		"confluentinc/confluent-local:7.7.0",
 		containerKafka.WithClusterID("test-cluster"),
-		testcontainers.WithImage("confluentinc/confluent-local:7.5.0"),
 	)
 	if err != nil {
 		assert.NilError(t, err)

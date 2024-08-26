@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
+
 	"github.com/aykanferhat/go-kafka-partition-scaler/common"
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
 	"github.com/golang/mock/gomock"
@@ -47,28 +49,26 @@ func Test_DefaultErrorConsumer_ShouldConsumeMessageThatHasTargetTopic(t *testing
 	targetTopic := "target-topic"
 	ctx := context.Background()
 	msg := &ConsumerMessage{
-		ConsumerMessage: &kafka.ConsumerMessage{
-			Headers: []kafka.Header{
-				{
-					Key:   common.ToByte(common.ErrorTopicCountKey.String()),
-					Value: common.ToByte("1"),
-				},
-				{
-					Key:   common.ToByte(common.ErrorMessageKey.String()),
-					Value: common.ToByte("error message"),
-				},
-				{
-					Key:   common.ToByte(common.TargetTopicKey.String()),
-					Value: common.ToByte(targetTopic),
-				},
+		Headers: []message.Header{
+			{
+				Key:   common.ToByte(common.ErrorTopicCountKey.String()),
+				Value: common.ToByte("1"),
 			},
-			Timestamp: time.Time{},
-			Key:       common.ToByte("key"),
-			Value:     common.ToByte("value"),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    0,
+			{
+				Key:   common.ToByte(common.ErrorMessageKey.String()),
+				Value: common.ToByte("error message"),
+			},
+			{
+				Key:   common.ToByte(common.TargetTopicKey.String()),
+				Value: common.ToByte(targetTopic),
+			},
 		},
+		Timestamp:        time.Time{},
+		Key:              common.ToByte("key"),
+		Value:            common.ToByte("value"),
+		Topic:            topic,
+		Partition:        0,
+		Offset:           0,
 		VirtualPartition: 0,
 	}
 
@@ -89,24 +89,22 @@ func Test_DefaultErrorConsumer_ShouldConsumeMessageThatHasTargetTopic(t *testing
 
 func generateTestConsumerMessageForDefaultErrorConsumer(topic string, errorCount string, errorMessage string) *ConsumerMessage {
 	return &ConsumerMessage{
-		ConsumerMessage: &kafka.ConsumerMessage{
-			Headers: []kafka.Header{
-				{
-					Key:   common.ToByte(common.ErrorTopicCountKey.String()),
-					Value: common.ToByte(errorCount),
-				},
-				{
-					Key:   common.ToByte(common.ErrorMessageKey.String()),
-					Value: common.ToByte(errorMessage),
-				},
+		Headers: []message.Header{
+			{
+				Key:   common.ToByte(common.ErrorTopicCountKey.String()),
+				Value: common.ToByte(errorCount),
 			},
-			Timestamp: time.Time{},
-			Key:       common.ToByte("key"),
-			Value:     common.ToByte("value"),
-			Topic:     topic,
-			Partition: 0,
-			Offset:    0,
+			{
+				Key:   common.ToByte(common.ErrorMessageKey.String()),
+				Value: common.ToByte(errorMessage),
+			},
 		},
+		Timestamp:        time.Time{},
+		Key:              common.ToByte("key"),
+		Value:            common.ToByte("value"),
+		Topic:            topic,
+		Partition:        0,
+		Offset:           0,
 		VirtualPartition: 0,
 	}
 }

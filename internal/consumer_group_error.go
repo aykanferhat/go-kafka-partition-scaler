@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka/message"
+
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/cron"
 	"github.com/aykanferhat/go-kafka-partition-scaler/pkg/kafka"
 )
@@ -59,30 +61,32 @@ func NewErrorConsumerGroup(
 }
 
 func (c *errorConsumerGroup) Handle() kafka.MessageHandler {
-	return func(topic string, partition int32, messageChan <-chan *kafka.ConsumerMessage, commitFunc kafka.CommitMessageFunc) {
+	return func(topic string, partition int32, messageChan <-chan *message.ConsumerMessage, commitFunc kafka.CommitMessageFunc) {
 		consumer := c.errorTopicConsumerMap[topic]
-		c.consumerGroupStatusListener.Listen(&ConsumerGroupStatus{Topic: topic, Partition: partition, Status: StartedListening, Time: time.Now(), Offset: -1})
+		key := getKey(topic, partition)
+		c.consumerGroupStatusListener.Change(key, topic, partition, -1, StartedListening)
 		for msg := range messageChan {
 			if time.Since(msg.Timestamp).Nanoseconds() < c.errorConsumerConfig.CloseConsumerWhenMessageIsNew.Nanoseconds() {
-				c.consumerGroupStatusListener.Listen(&ConsumerGroupStatus{Topic: topic, Partition: partition, Status: ErrorConsumerOccurredViolation, Time: time.Now(), Offset: msg.Offset})
+				c.consumerGroupStatusListener.Change(key, topic, partition, msg.Offset, ErrorConsumerOccurredViolation)
 				continue
 			}
-			c.consumerGroupStatusListener.Listen(&ConsumerGroupStatus{Topic: topic, Partition: partition, Status: ListenedMessage, Time: time.Now(), Offset: msg.Offset})
-			consumerMessage := &ConsumerMessage{ConsumerMessage: msg, GroupID: c.errorConsumerConfig.GroupID, Tracer: c.errorConsumerConfig.Tracer}
+			c.consumerGroupStatusListener.Change(key, topic, partition, msg.Offset, ListenedMessage)
+			msg.SetAdditionalFields(0, c.errorConsumerConfig.GroupID, c.errorConsumerConfig.Tracer)
+			castedMessage := (*ConsumerMessage)(msg)
 			ctx := context.Background()
-			errorCount := getErrorCount(consumerMessage)
+			errorCount := getErrorCount(castedMessage)
 			if errorCount > c.errorConsumerConfig.MaxErrorCount {
-				err := errors.New(getErrorMessage(consumerMessage))
+				err := errors.New(getErrorMessage(castedMessage))
 				reachedMaxRetryErrorCountErr := fmt.Errorf("reached max error count, errRetriedCount: %d", errorCount)
 				joinedErr := errors.Join(err, reachedMaxRetryErrorCountErr)
-				c.lastStep(ctx, consumerMessage, joinedErr)
-				commitFunc(consumerMessage.Topic, consumerMessage.Partition, consumerMessage.Offset)
+				c.lastStep(ctx, castedMessage, joinedErr)
+				commitFunc(msg.Topic, msg.Partition, msg.Offset)
 				continue
 			}
-			if err := processMessage(ctx, consumer, consumerMessage, c.errorConsumerConfig.MaxProcessingTime); err != nil {
-				c.lastStep(ctx, consumerMessage, err)
+			if err := processMessage(ctx, consumer, castedMessage, c.errorConsumerConfig.MaxProcessingTime); err != nil {
+				c.lastStep(ctx, castedMessage, err)
 			}
-			commitFunc(consumerMessage.Topic, consumerMessage.Partition, consumerMessage.Offset)
+			commitFunc(msg.Topic, msg.Partition, msg.Offset)
 		}
 	}
 }
