@@ -94,7 +94,7 @@ func (c *consumerGroup) HandleVirtual() handler.MessageHandler {
 			c.consumerGroupStatusListener.Change(key, topic, partition, msg.Offset, ListenedMessage)
 			virtualPartition := calculateVirtualPartition(string(msg.Key), c.initializedContext.ConsumerGroupConfig.VirtualPartitionCount)
 			msg.SetAdditionalFields(virtualPartition, c.initializedContext.ConsumerGroupConfig.GroupID, tracerName)
-			messageVirtualListener, _ := messageVirtualListeners[virtualPartition]
+			messageVirtualListener := messageVirtualListeners[virtualPartition]
 			messageVirtualListener.Publish(msg)
 		}
 		for _, messageVirtualListener := range messageVirtualListeners {
