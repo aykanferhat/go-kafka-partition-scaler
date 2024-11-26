@@ -128,17 +128,12 @@ func (listener *processedMessageListener) commitMessage(message *processedMessag
 func (listener *processedMessageListener) Close() {
 	listener.closeOnce.Do(func() {
 		listener.stopped = true
-		time.Sleep(150 * time.Millisecond)
-
 		listener.waitGroup.Wait()
 		close(listener.messageChan)
 		listener.firstConsumedMessage = nil
-
-		// commit processed message before close
 		listener.processMessageMutex.Lock()
+		defer listener.processMessageMutex.Unlock()
 		listener.commitMessages()
-		listener.processMessageMutex.Unlock()
-
 		listener.processMessageTicker.Stop()
 	})
 }
